@@ -20,26 +20,25 @@ int main(void) {
 		entry[i] = choices[0]; // "aaa"
 
 	printf("Entry: %s\n", entry); // TMP
-	printf("This is strlen: %d\n", len_n); // TMP, 3
+	printf("This is strlen: %d\n\n", len_n); // TMP, 3
 
 	int b = 0;
 
-	while (strncmp(entry, "ccc", 3) != 0 && b != 12) { // While entry not last entry
+	while (strncmp(entry, "ccc", 3) != 0 && b != 9) { // While entry not last entry
 
 		for (int i = len_n - 1; i > -1; i--) { // Go back down the entry list from the back
 
-			printf("%s\n", entry);
-
 			if (entry[i] == last_elem) { // If the current entry index is the last elem
+				printf("%s\n", entry);
 				entry[i - 1] = get_next_char(entry[i - 1]);
 
 				for (int j = i; j < len_n; j++) // Reset current index and forward ones to base choice
 					entry[j] = choices[0];
-			} else {
-				entry[i] = get_next_char(entry[i]);
+				break;
 			}
-			break;
 		}
+		printf("%s\n", entry);
+		entry[len_n - 1] = get_next_char(entry[len_n - 1]);
 		b++;
 	}
 
