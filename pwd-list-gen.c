@@ -2,28 +2,12 @@
 
 #include <stdio.h>
 #include <string.h>
-
-/*
 #include <unistd.h>
 #include <stdlib.h>
 
-while (getopt(argc, argv, "hp:c:") != 0) {
-	switch () {
-		case 'h':
-			break;
-		case 'p':
-			break
-		case 'c':
-			break
-		default:
-			fprintf(stderr, "Error\n");
-			exit(EXIT_FAILURE);
-	}
-}
+/*
 
-FILE *fp = NULL;
-
-fp = fopen("pwd-list.txt", "w");
+fp = fopen("test.txt", "w");
 
 fputs(entry, fp);
 
@@ -31,19 +15,38 @@ fclose(fp);
 */
 
 char get_next_char(const char c) {
-	const char * const choices = "abc";
+	const char *const choices = "abc";
+	const int len_n = strlen(choices);
 
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < len_n; i++)
 		if (c == choices[i])
 			return choices[i + 1];
 	return '\0';
 }
 
-int main(void) {
-	const char * const choices = "abc";
+int main(const int argc, char *const argv[]) {
+	int opt;
+
+	while ((opt = getopt(argc, argv, "hp:c:")) != -1) {
+		switch (opt) {
+		case 'h':
+			break;
+		case 'p':
+			break;
+		case 'c':
+			break;
+		default:
+			fprintf(stderr, "Error\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	const FILE *fp = NULL;
+
+	const char *const choices = "abc";
 	const int len_n = strlen(choices);
 	const char last_elem = choices[len_n - 1];
-	char entry[4] = {'0', '0', '0', '\0'}, end_entry[4] = {'0', '0', '0', '\0'};
+	char entry[4], end_entry[4];
 
 	for (int i = 0; i < len_n; i++) { // Init string/entry
 		entry[i] = choices[0]; // "aaa"
