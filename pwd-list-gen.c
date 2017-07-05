@@ -17,8 +17,8 @@ char get_next_char(const char c) {
 
 int main(const int argc, char *const argv[]) {
 
-	if (argc < 1) {
-		printf("Usage: ./a [options] <filename>\n");
+	if (argc < 2) {
+		printf("Usage: ./a [-he] [-c Char set] [-p num] <filename>\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -28,7 +28,7 @@ int main(const int argc, char *const argv[]) {
 		switch (opt) {
 		case 'h':
 			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: [-he] [-c Char set] [-p num] <filename>\n\n"
+				"Usage: ./a [-he] [-c Char set] [-p num] <filename>\n\n"
 				"\tCommands:\n"
 				"\t-h\tHelp menu\n\n"
 				"\t-c\tChoose character set\n\n"
@@ -45,9 +45,7 @@ int main(const int argc, char *const argv[]) {
 		}
 	}
 
-	exit(1);
-
-	FILE *fp = fopen("test.txt", "w");
+	FILE *fp = fopen(argv[argc - 1], "w");
 
 	const char *const choices = "abc";
 	const int len_n = strlen(choices);
