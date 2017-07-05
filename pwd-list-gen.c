@@ -16,11 +16,24 @@ char get_next_char(const char c) {
 }
 
 int main(const int argc, char *const argv[]) {
+
+	if (argc < 1) {
+		printf("Usage: ./a [options] <filename>\n");
+		exit(EXIT_FAILURE);
+	}
+
 	int opt;
 
 	while ((opt = getopt(argc, argv, "hp:c:")) != -1) {
 		switch (opt) {
 		case 'h':
+			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
+				"Usage: [-he] [-c Char set] [-p num] <filename>\n\n"
+				"\tCommands:\n"
+				"\t-h\tHelp menu\n\n"
+				"\t-c\tChoose character set\n\n"
+				"\t-p\tCreate passwords starting from length = 0 to specified length\n\n"
+				"\t-v\tChoose file type to .csv\n");
 			break;
 		case 'p':
 			break;
@@ -31,6 +44,8 @@ int main(const int argc, char *const argv[]) {
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	exit(1);
 
 	FILE *fp = fopen("test.txt", "w");
 
