@@ -5,15 +5,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-/*
-
-fp = fopen("test.txt", "w");
-
-fputs(entry, fp);
-
-fclose(fp);
-*/
-
 char get_next_char(const char c) {
 	const char *const choices = "abc";
 	const int len_n = strlen(choices);
@@ -41,7 +32,7 @@ int main(const int argc, char *const argv[]) {
 		}
 	}
 
-	const FILE *fp = NULL;
+	FILE *fp = fopen("test.txt", "w");
 
 	const char *const choices = "abc";
 	const int len_n = strlen(choices);
@@ -63,6 +54,7 @@ int main(const int argc, char *const argv[]) {
 				if (entry[i - 1] == last_elem)
 					continue;
 
+				fprintf(fp, "%s\n", entry);
 				printf("%s\n", entry);
 				entry[i - 1] = get_next_char(entry[i - 1]);
 
@@ -73,10 +65,13 @@ int main(const int argc, char *const argv[]) {
 			} else
 				break;
 		}
+		fprintf(fp, "%s\n", entry);
 		printf("%s\n", entry);
 		entry[len_n - 1] = get_next_char(entry[len_n - 1]);
 	}
+	fprintf(fp, "%s\n", entry);
 	printf("%s\n", entry);
+	fclose(fp);
 
 	return 1;
 }
