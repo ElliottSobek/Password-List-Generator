@@ -109,15 +109,15 @@ int main(const int argc, char *const argv[]) {
 	}
 
 	// Init string/entry
-	for (int i = 0; i < len_n; i++) {
-		entry[i] = choices[0]; // "aaa"
-		end_entry[i] = last_elem; // "ccc"
+	for (int i = 0; i < entry_len; i++) {
+		entry[i] = choices[0];
+		end_entry[i] = last_elem;
 	}
 
-	while (strncmp(entry, end_entry, len_n) != 0) { // While entry not last entry
+	while (strncmp(entry, end_entry, entry_len) != 0) { // While entry not last entry
 
 		// This loop only applies if you have acc -> baa
-		for (int i = len_n - 1; i > -1; i--) { // Go back down the entry list from the back
+		for (int i = entry_len - 1; i > -1; i--) { // Go back down the entry list from the back
 
 			if (entry[i] == last_elem) { // If the current entry index is the last elem
 
@@ -128,7 +128,7 @@ int main(const int argc, char *const argv[]) {
 				printf("%s\n", entry);
 				entry[i - 1] = get_next_char(entry[i - 1], choices);
 
-				for (int j = i; j < len_n; j++) // Reset current index and forward ones to base choice
+				for (int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
 					entry[j] = choices[0];
 				break;
 
@@ -137,7 +137,7 @@ int main(const int argc, char *const argv[]) {
 		}
 		fprintf(fp, "%s\n", entry);
 		printf("%s\n", entry);
-		entry[len_n - 1] = get_next_char(entry[len_n - 1], choices);
+		entry[entry_len - 1] = get_next_char(entry[entry_len - 1], choices);
 	}
 	fprintf(fp, "%s\n", entry);
 	printf("%s\n", entry);
