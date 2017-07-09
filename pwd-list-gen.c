@@ -31,19 +31,21 @@ int main(const int argc, char *const argv[]) {
 	int entry_len = 8;
 	bool from_zero = false;
 
-	while ((opt = getopt(argc, argv, "hp:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
 		switch (opt) {
 		case 'h':
 			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: ./a [-he] [-c Char set] [-p num] <filename>\n\n"
+				"Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
 				"\tCommands:\n"
 				"\t-h\tHelp menu\n\n"
+				"\t-l\tSet password length\n\n"
 				"\t-c\tChoose character set\n\n"
-				"\t-p\tCreate passwords starting from length = 0 to specified length\n\n"
+				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
 				"\t-v\tChoose file type to .csv\n");
+			exit(EXIT_SUCCESS);
 			break;
-		case 'p':
-			entry_len = optind;
+		case 'l':
+			entry_len = atoi(optarg);
 			break;
 		case 'a':
 			from_zero = true;
@@ -91,6 +93,11 @@ int main(const int argc, char *const argv[]) {
 		default:
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	if (entry_len < 1) {
+		printf("Password length must be one (1) or bigger\n");
+		exit(EXIT_FAILURE);
 	}
 
 	FILE *fp = fopen(argv[argc - 1], "w");
