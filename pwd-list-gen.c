@@ -111,6 +111,10 @@ int main(const int argc, char *const argv[]) {
 			break;
 		case 'l':
 			entry_len = atoi(optarg);
+			if (entry_len < 1) {
+				printf("Password length must be one (1) or bigger\n");
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'a':
 			from_zero = true;
@@ -158,11 +162,6 @@ int main(const int argc, char *const argv[]) {
 		default:
 			exit(EXIT_FAILURE);
 		}
-	}
-
-	if (entry_len < 1) {
-		printf("Password length must be one (1) or bigger\n");
-		exit(EXIT_FAILURE);
 	}
 
 	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n
