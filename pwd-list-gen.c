@@ -70,10 +70,8 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 
 				for (int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
 					entry[j] = choices[0];
-				break;
-
-			} else
-				break;
+			}
+			break;
 		}
 		fprintf(fp, "%s\n", entry);
 		entry[entry_len - 1] = get_next_char(entry[entry_len - 1], choices);
@@ -164,10 +162,10 @@ int main(const int argc, char *const argv[]) {
 		}
 	}
 
-	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n
-		This program comes with ABSOLUTELY NO WARRANTY..\n
-		This is free software, and you are welcome to redistribute it\n
-		under certain conditions.\n");
+	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
+		"This program comes with ABSOLUTELY NO WARRANTY..\n"
+		"This is free software, and you are welcome to redistribute it\n"
+		"under certain conditions.\n");
 
 	FILE *fp = fopen(argv[argc - 1], "w");
 
