@@ -6,6 +6,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define NUM_LEN 10
+#define ALPHA_LEN 26
+#define SYMBOL_LEN 33
+#define CHOICE_SET_MAX 95
+#define DEFAULT_ENTRY_LEN 8
+#define DEFAUT_CHOICE_SET "0123456789"
+
 char get_next_char(const char c, const char *const choice_set) {
 	const int len_n = strlen(choice_set);
 
@@ -44,7 +51,6 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 					continue;
 
 				fprintf(fp, "%s\n", entry);
-				printf("%s\n", entry);
 				entry[i - 1] = get_next_char(entry[i - 1], choices);
 
 				for (int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
@@ -55,27 +61,25 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 				break;
 		}
 		fprintf(fp, "%s\n", entry);
-		printf("%s\n", entry);
 		entry[entry_len - 1] = get_next_char(entry[entry_len - 1], choices);
 	}
 	fprintf(fp, "%s\n", entry);
-	printf("%s\n", entry);
 }
 
 int main(const int argc, char *const argv[]) {
-	const char num[11] = "0123456789",
-	lower[27] = "abcdefghijklmnopqrstuvwxyz",
-	upper[27] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	symbol[34] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
-	char choice_set[96] = "0123456789";
+	const char num[NUM_LEN + 1] = "0123456789",
+	lower[ALPHA_LEN + 1] = "abcdefghijklmnopqrstuvwxyz",
+	upper[ALPHA_LEN + 1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	symbol[SYMBOL_LEN + 1] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
+	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAUT_CHOICE_SET;
 
 	if ((argc < 2) || (argc > 8)) {
-		printf("Usage: ./a [-he] [-c Char set] [-p num] <filename>\n");
+		printf("Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n");
 		exit(EXIT_FAILURE);
 	}
 
-	char opt;
-	int entry_len = 8;
+	char opt = 0;
+	int entry_len = DEFAULT_ENTRY_LEN;
 	bool from_zero = false;
 
 	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
@@ -83,12 +87,11 @@ int main(const int argc, char *const argv[]) {
 		case 'h':
 			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
 				"Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
-				"\tCommands:\n"
+				"\tOptions:\n"
 				"\t-h\tHelp menu\n\n"
-				"\t-l\tSet password length\n\n"
-				"\t-c\tChoose character set\n\n"
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
-				"\t-v\tChoose file type to .csv\n");
+				"\t-l\tSet password length\n\n"
+				"\t-c\tChoose character set\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case 'l':
@@ -101,36 +104,36 @@ int main(const int argc, char *const argv[]) {
 			strncpy(choice_set, "", 1);
 			switch (optarg[0]) {
 			case 'n':
-				strncat(choice_set, num, 10);
+				strncat(choice_set, num, NUM_LEN);
 				break;
 			case 'u':
-				strncat(choice_set, upper, 26);
+				strncat(choice_set, upper, ALPHA_LEN);
 				break;
 			case 'l':
-				strncat(choice_set, lower, 26);
+				strncat(choice_set, lower, ALPHA_LEN);
 				break;
 			case 'p':
-				strncat(choice_set, upper, 26);
-				strncat(choice_set, lower, 26);
+				strncat(choice_set, upper, ALPHA_LEN);
+				strncat(choice_set, lower, ALPHA_LEN);
 				break;
 			case 'a':
-				strncat(choice_set, num, 10);
-				strncat(choice_set, upper, 26);
-				strncat(choice_set, lower, 26);
+				strncat(choice_set, num, NUM_LEN);
+				strncat(choice_set, upper, ALPHA_LEN);
+				strncat(choice_set, lower, ALPHA_LEN);
 				break;
 			case 'w':
-				strncat(choice_set, num, 10);
-				strncat(choice_set, lower, 26);
+				strncat(choice_set, num, NUM_LEN);
+				strncat(choice_set, lower, ALPHA_LEN);
 				break;
 			case 'e':
-				strncat(choice_set, num, 10);
-				strncat(choice_set, upper, 26);
+				strncat(choice_set, num, NUM_LEN);
+				strncat(choice_set, upper, ALPHA_LEN);
 				break;
 			case 's':
-				strncat(choice_set, num, 10);
-				strncat(choice_set, upper, 26);
-				strncat(choice_set, lower, 26);
-				strncat(choice_set, symbol, 33);
+				strncat(choice_set, num, NUM_LEN);
+				strncat(choice_set, upper, ALPHA_LEN);
+				strncat(choice_set, lower, ALPHA_LEN);
+				strncat(choice_set, symbol, SYMBOL_LEN);
 				break;
 			default:
 				fprintf(stderr, "Error. Unrecognized character set option.\n");
