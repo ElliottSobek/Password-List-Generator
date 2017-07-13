@@ -1,11 +1,12 @@
 /*
-	{one line to give the program's name and a brief idea of what it does.}
-    Copyright (C) {year}  {name of author}
+	Generates all possible character combinations for a given character set and
+	length to a file.
+    Copyright (C) 2017  Elliott Sobek
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,6 +26,7 @@
 #define CHOICE_SET_MAX 95
 #define DEFAULT_ENTRY_LEN 8
 #define DEFAUT_CHOICE_SET "0123456789"
+#define DEFAULT_FILENAME "list.txt"
 
 char get_next_char(const char c, const char *const choice_set) {
 	const int len_n = strlen(choice_set);
@@ -163,10 +165,10 @@ int main(const int argc, char *const argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("{project}  Copyright (C) {year}  {fullname}\n
-		This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n
+	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n
+		This program comes with ABSOLUTELY NO WARRANTY..\n
 		This is free software, and you are welcome to redistribute it\n
-		under certain conditions; type `show c' for details.\n");
+		under certain conditions.\n");
 
 	FILE *fp = fopen(argv[argc - 1], "w");
 
