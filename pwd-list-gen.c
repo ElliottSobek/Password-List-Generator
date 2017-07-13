@@ -6,105 +6,17 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-char get_next_char(const char c, const char *const choices) {
-	const int len_n = strlen(choices);
+char get_next_char(const char c, const char *const choice_set) {
+	const int len_n = strlen(choice_set);
 
 	for (int i = 0; i < len_n; i++)
-		if (c == choices[i])
-			return choices[i + 1];
+		if (c == choice_set[i])
+			return choice_set[i + 1];
 	return '\0';
 }
 
-int main(const int argc, char *const argv[]) {
-	const char num[11] = "0123456789",
-	lower[27] = "abcdefghijklmnopqrstuvwxyz",
-	upper[27] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	symbol[34] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
-	char choicess[96] = "0123456";
-
-	if ((argc < 2) || (argc > 8)) {
-		printf("Usage: ./a [-he] [-c Char set] [-p num] <filename>\n");
-		exit(EXIT_FAILURE);
-	}
-
-	int opt;
-	int entry_len = 8;
-	bool from_zero = false;
-
-	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
-		switch (opt) {
-		case 'h':
-			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
-				"\tCommands:\n"
-				"\t-h\tHelp menu\n\n"
-				"\t-l\tSet password length\n\n"
-				"\t-c\tChoose character set\n\n"
-				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
-				"\t-v\tChoose file type to .csv\n");
-			exit(EXIT_SUCCESS);
-			break;
-		case 'l':
-			entry_len = atoi(optarg);
-			break;
-		case 'a':
-			from_zero = true;
-			break;
-		case 'c':
-			strncpy(choicess, "", 1);
-			switch (optarg[0]) {
-			case 'n':
-				strncat(choicess, num, 10);
-				break;
-			case 'u':
-				strncat(choicess, upper, 26);
-				break;
-			case 'l':
-				strncat(choicess, lower, 26);
-				break;
-			case 'p':
-				strncat(choicess, upper, 26);
-				strncat(choicess, lower, 26);
-				break;
-			case 'a':
-				strncat(choicess, num, 10);
-				strncat(choicess, upper, 26);
-				strncat(choicess, lower, 26);
-				break;
-			case 'w':
-				strncat(choicess, num, 10);
-				strncat(choicess, lower, 26);
-				break;
-			case 'e':
-				strncat(choicess, num, 10);
-				strncat(choicess, upper, 26);
-				break;
-			case 's':
-				strncat(choicess, num, 10);
-				strncat(choicess, upper, 26);
-				strncat(choicess, lower, 26);
-				strncat(choicess, symbol, 33);
-				break;
-			default:
-				fprintf(stderr, "Error. Unrecognized character set option.\n");
-				exit(EXIT_FAILURE);
-			}
-			break;
-		default:
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	if (entry_len < 1) {
-		printf("Password length must be one (1) or bigger\n");
-		exit(EXIT_FAILURE);
-	}
-
-	FILE *fp = fopen(argv[argc - 1], "w");
-
-	// Start code section?
-
-	const char *const choices = strncpy(choicess, choicess, strlen(choicess));
+void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
+	const char *const choices = strncpy(choice_set, choice_set, strlen(choice_set));
 	const int len_n = strlen(choices);
 	const char last_elem = choices[len_n - 1];
 	char entry[entry_len + 1], end_entry[entry_len + 1];
@@ -148,8 +60,101 @@ int main(const int argc, char *const argv[]) {
 	}
 	fprintf(fp, "%s\n", entry);
 	printf("%s\n", entry);
+}
 
-	// End code section?
+int main(const int argc, char *const argv[]) {
+	const char num[11] = "0123456789",
+	lower[27] = "abcdefghijklmnopqrstuvwxyz",
+	upper[27] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	symbol[34] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
+	char choice_set[96] = "0123456789";
+
+	if ((argc < 2) || (argc > 8)) {
+		printf("Usage: ./a [-he] [-c Char set] [-p num] <filename>\n");
+		exit(EXIT_FAILURE);
+	}
+
+	char opt;
+	int entry_len = 8;
+	bool from_zero = false;
+
+	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
+		switch (opt) {
+		case 'h':
+			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
+				"Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
+				"\tCommands:\n"
+				"\t-h\tHelp menu\n\n"
+				"\t-l\tSet password length\n\n"
+				"\t-c\tChoose character set\n\n"
+				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
+				"\t-v\tChoose file type to .csv\n");
+			exit(EXIT_SUCCESS);
+			break;
+		case 'l':
+			entry_len = atoi(optarg);
+			break;
+		case 'a':
+			from_zero = true;
+			break;
+		case 'c':
+			strncpy(choice_set, "", 1);
+			switch (optarg[0]) {
+			case 'n':
+				strncat(choice_set, num, 10);
+				break;
+			case 'u':
+				strncat(choice_set, upper, 26);
+				break;
+			case 'l':
+				strncat(choice_set, lower, 26);
+				break;
+			case 'p':
+				strncat(choice_set, upper, 26);
+				strncat(choice_set, lower, 26);
+				break;
+			case 'a':
+				strncat(choice_set, num, 10);
+				strncat(choice_set, upper, 26);
+				strncat(choice_set, lower, 26);
+				break;
+			case 'w':
+				strncat(choice_set, num, 10);
+				strncat(choice_set, lower, 26);
+				break;
+			case 'e':
+				strncat(choice_set, num, 10);
+				strncat(choice_set, upper, 26);
+				break;
+			case 's':
+				strncat(choice_set, num, 10);
+				strncat(choice_set, upper, 26);
+				strncat(choice_set, lower, 26);
+				strncat(choice_set, symbol, 33);
+				break;
+			default:
+				fprintf(stderr, "Error. Unrecognized character set option.\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		default:
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (entry_len < 1) {
+		printf("Password length must be one (1) or bigger\n");
+		exit(EXIT_FAILURE);
+	}
+
+	FILE *fp = fopen(argv[argc - 1], "w");
+
+	if (from_zero)
+		for (int i = 1; i <= entry_len ; i++)
+			gen_entries(choice_set, i, fp);
+	else
+		gen_entries(choice_set, entry_len, fp);
+
 	fclose(fp);
 
 	return 1;
