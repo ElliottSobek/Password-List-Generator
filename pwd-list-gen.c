@@ -124,9 +124,6 @@ int main(const int argc, char *const argv[]) {
 		case 'c':
 			strncpy(choice_set, "", 1);
 			switch (optarg[0]) {
-			case 'n':
-				strncat(choice_set, num, NUM_LEN);
-				break;
 			case 'u':
 				strncat(choice_set, upper, ALPHA_LEN);
 				break;
