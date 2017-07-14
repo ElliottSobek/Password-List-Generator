@@ -84,6 +84,7 @@ int main(const int argc, char *const argv[]) {
 	lower[ALPHA_LEN + 1] = "abcdefghijklmnopqrstuvwxyz",
 	upper[ALPHA_LEN + 1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	symbol[SYMBOL_LEN + 1] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
+	const char *extension = "", *filename = DEFAULT_FILENAME;
 	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAUT_CHOICE_SET;
 
 	if ((argc < 2) || (argc > 8)) {
@@ -167,7 +168,13 @@ int main(const int argc, char *const argv[]) {
 		"This is free software, and you are welcome to redistribute it\n"
 		"under certain conditions.\n");
 
-	FILE *fp = fopen(argv[argc - 1], "w");
+
+	extension = strrchr(argv[argc - 1], '.');
+	if (extension)
+		if (strncmp(extension, ".txt", 4) == 0)
+			filename = argv[argc - 1];
+
+	FILE *fp = fopen(filename, "w");
 
 	if (from_zero)
 		for (int i = 1; i <= entry_len ; i++)
