@@ -95,7 +95,7 @@ int main(const int argc, char *const argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	char opt = 0;
+	int opt = 0;
 	int entry_len = DEFAULT_ENTRY_LEN;
 	bool from_zero = false;
 
