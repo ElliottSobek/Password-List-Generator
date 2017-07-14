@@ -41,7 +41,7 @@ char get_next_char(const char c, const char *const choice_set) {
 }
 
 void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
-	const char *const choices = strncpy(choice_set, choice_set, strlen(choice_set));
+	const char *const choices = choice_set;
 	const int len_n = strlen(choices);
 	const char last_elem = choices[len_n - 1];
 	char entry[entry_len + 1], end_entry[entry_len + 1];
