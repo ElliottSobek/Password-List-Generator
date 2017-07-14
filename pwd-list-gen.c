@@ -24,7 +24,10 @@
 #define ALPHA_LEN 26
 #define SYMBOL_LEN 33
 #define CHOICE_SET_MAX 95
+
+#define EXT_LEN 4
 #define DEFAULT_ENTRY_LEN 8
+
 #define DEFAUT_CHOICE_SET "0123456789"
 #define DEFAULT_FILENAME "list.txt"
 
@@ -87,7 +90,7 @@ int main(const int argc, char *const argv[]) {
 	const char *extension = "", *filename = DEFAULT_FILENAME;
 	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAUT_CHOICE_SET;
 
-	if ((argc < 2) || (argc > 8)) {
+	if ((argc < 2) || (argc > 7)) {
 		printf("Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n");
 		exit(EXIT_FAILURE);
 	}
@@ -171,7 +174,7 @@ int main(const int argc, char *const argv[]) {
 
 	extension = strrchr(argv[argc - 1], '.');
 	if (extension)
-		if (strncmp(extension, ".txt", 4) == 0)
+		if (strncmp(extension, ".txt", EXT_LEN) == 0)
 			filename = argv[argc - 1];
 
 	FILE *fp = fopen(filename, "w");
