@@ -90,7 +90,7 @@ int main(const int argc, char *const argv[]) {
 	const char *extension = "", *filename = DEFAULT_FILENAME;
 	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAUT_CHOICE_SET;
 
-	if ((argc < 2) || (argc > 7)) {
+	if ((argc < 1) || (argc > 7)) {
 		printf("Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n");
 		exit(EXIT_FAILURE);
 	}
