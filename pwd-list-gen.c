@@ -28,7 +28,7 @@
 #define EXT_LEN 4
 #define DEFAULT_ENTRY_LEN 8
 
-#define DEFAUT_CHOICE_SET "0123456789"
+#define DEFAULT_CHOICE_SET "0123456789"
 #define DEFAULT_FILENAME "list.txt"
 
 char get_next_char(const char c, const char *const choice_set) {
@@ -88,7 +88,7 @@ int main(const int argc, char *const argv[]) {
 	upper[ALPHA_LEN + 1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	symbol[SYMBOL_LEN + 1] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
 	const char *extension = "", *filename = DEFAULT_FILENAME;
-	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAUT_CHOICE_SET;
+	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAULT_CHOICE_SET;
 
 	if (argc > 7) {
 		printf("Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n");
@@ -104,11 +104,18 @@ int main(const int argc, char *const argv[]) {
 		case 'h':
 			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
 				"Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
-				"\tOptions:\n"
+				"\tOptions:\n\n"
 				"\t-h\tHelp menu\n\n"
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
 				"\t-l\tSet password length\n\n"
-				"\t-c\tChoose character set\n");
+				"\t-c\tChoose character set\n"
+				"\t\tu UPPER\n"
+				"\t\tl LOWER\n"
+				"\t\tp ALPHA\n"
+				"\t\ta ALNUM\n"
+				"\t\tw NUM + LOWER\n"
+				"\t\te NUM + UPPER\n"
+				"\t\ts ALNUM + SYMBOL\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case 'l':
