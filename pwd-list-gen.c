@@ -171,7 +171,7 @@ int main(const int argc, char *const argv[]) {
 	}
 
 	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
-		"This program comes with ABSOLUTELY NO WARRANTY..\n"
+		"This program comes with ABSOLUTELY NO WARRANTY.\n"
 		"This is free software, and you are welcome to redistribute it\n"
 		"under certain conditions.\n");
 
