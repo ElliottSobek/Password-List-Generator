@@ -14,7 +14,7 @@
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99
+CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O3
 
 .PHONY: all clean
 
