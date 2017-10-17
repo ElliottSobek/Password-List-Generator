@@ -31,6 +31,16 @@
 #define DEFAULT_CHOICE_SET "0123456789"
 #define DEFAULT_FILENAME "list.txt"
 
+int get_total_ammount_of_entries(void) {
+	// strlen(choce_set)^entry_len;
+	return 0;
+}
+
+int get_exact_filesize(void) { // In bytes
+	// get_total_ammount_of_entries * 8;
+	return 0;
+}
+
 char get_next_char(const char c, const char *const choice_set) {
 	const int len_n = strlen(choice_set);
 
