@@ -23,13 +23,20 @@
 #define NUM_LEN 10
 #define ALPHA_LEN 26
 #define SYMBOL_LEN 33
-#define CHOICE_SET_MAX 95
 
+#define NT_LEN 1
 #define EXT_LEN 4
+#define ARG_MAX 7
+#define NULL_OPT 0
+#define NEXT_INDEX 1
+#define FIRST_ELEM 0
+#define PREV_INDEX 1
+#define NULL_STR_LEN -1
+#define MIN_ENTRY_LEN 1
 #define DEFAULT_ENTRY_LEN 8
 
-#define DEFAULT_CHOICE_SET "0123456789"
 #define DEFAULT_FILENAME "list.txt"
+#define DEFAULT_CHOICE_SET "0123456789"
 
 int get_total_ammount_of_entries(void) {
 	// strlen(choce_set)^entry_len;
@@ -42,71 +49,70 @@ int get_exact_filesize(void) { // In bytes
 }
 
 char get_next_char(const char c, const char *const choice_set) {
-	const int len_n = strlen(choice_set);
+	const size_t len_n = strlen(choice_set);
 
-	for (int i = 0; i < len_n; i++)
+	for (unsigned int i = 0; i < len_n; i++)
 		if (c == choice_set[i])
-			return choice_set[i + 1];
+			return choice_set[i + NEXT_INDEX];
 	return '\0';
 }
 
 void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 	const char *const choices = choice_set;
-	const int len_n = strlen(choices);
-	const char last_elem = choices[len_n - 1];
-	char entry[entry_len + 1], end_entry[entry_len + 1];
+	const size_t len_n = strlen(choices);
+	const char last_elem = choices[len_n - NT_LEN];
+	char entry[entry_len + NT_LEN], end_entry[entry_len + NT_LEN];
 
 	// Clear the arrays
-	for (int i = 0; i < entry_len + 1; i++) {
+	for (int i = 0; i < entry_len + NT_LEN; i++) {
 		entry[i] = '\0';
 		end_entry[i] = '\0';
 	}
 
 	// Init string/entry
 	for (int i = 0; i < entry_len; i++) {
-		entry[i] = choices[0];
+		entry[i] = choices[FIRST_ELEM];
 		end_entry[i] = last_elem;
 	}
 
 	while (strncmp(entry, end_entry, entry_len) != 0) { // While entry not last entry
 
 		// This loop only applies if you have acc -> baa
-		for (int i = entry_len - 1; i > -1; i--) { // Go back down the entry list from the back
+		for (int i = entry_len - NT_LEN; i > NULL_STR_LEN; i--) { // Go back down the entry list from the back
 
 			if (entry[i] == last_elem) { // If the current entry index is the last elem
 
-				if (entry[i - 1] == last_elem)
+				if (entry[i - PREV_INDEX] == last_elem)
 					continue;
 
 				fprintf(fp, "%s\n", entry);
-				entry[i - 1] = get_next_char(entry[i - 1], choices);
+				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choices);
 
 				for (int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
-					entry[j] = choices[0];
+					entry[j] = choices[FIRST_ELEM];
 			}
 			break;
 		}
 		fprintf(fp, "%s\n", entry);
-		entry[entry_len - 1] = get_next_char(entry[entry_len - 1], choices);
+		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choices);
 	}
 	fprintf(fp, "%s\n", entry);
 }
 
 int main(const int argc, char *const argv[]) {
-	const char num[NUM_LEN + 1] = "0123456789",
-	lower[ALPHA_LEN + 1] = "abcdefghijklmnopqrstuvwxyz",
-	upper[ALPHA_LEN + 1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	symbol[SYMBOL_LEN + 1] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
+	const char num[NUM_LEN + NT_LEN] = "0123456789",
+	lower[ALPHA_LEN + NT_LEN] = "abcdefghijklmnopqrstuvwxyz",
+	upper[ALPHA_LEN + NT_LEN] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	symbol[SYMBOL_LEN + NT_LEN] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
 	const char *extension = "", *filename = DEFAULT_FILENAME;
-	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAULT_CHOICE_SET;
+	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
 
-	if (argc > 7) {
+	if (argc > ARG_MAX) {
 		printf("Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n");
 		exit(EXIT_FAILURE);
 	}
 
-	int opt = 0;
-	int entry_len = DEFAULT_ENTRY_LEN;
+	int opt = NULL_OPT, entry_len = DEFAULT_ENTRY_LEN;
 	bool from_zero = false;
 
 	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
@@ -118,7 +124,7 @@ int main(const int argc, char *const argv[]) {
 				"\t-h\tHelp menu\n\n"
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
 				"\t-l\tSet password length\n\n"
-				"\t-c\tChoose character set\n"
+				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
 				"\t\tl LOWER\n"
 				"\t\tp ALPHA\n"
@@ -130,7 +136,7 @@ int main(const int argc, char *const argv[]) {
 			break;
 		case 'l':
 			entry_len = atoi(optarg);
-			if (entry_len < 1) {
+			if (entry_len < MIN_ENTRY_LEN) {
 				printf("Password length must be one (1) or bigger\n");
 				exit(EXIT_FAILURE);
 			}
@@ -140,7 +146,7 @@ int main(const int argc, char *const argv[]) {
 			break;
 		case 'c':
 			strncpy(choice_set, "", 1);
-			switch (optarg[0]) {
+			switch (optarg[FIRST_ELEM]) {
 			case 'u':
 				strncat(choice_set, upper, ALPHA_LEN);
 				break;
@@ -186,15 +192,15 @@ int main(const int argc, char *const argv[]) {
 		"under certain conditions.\n");
 
 
-	extension = strrchr(argv[argc - 1], '.');
+	extension = strrchr(argv[argc - NT_LEN], '.');
 	if (extension)
 		if (strncmp(extension, ".txt", EXT_LEN) == 0)
-			filename = argv[argc - 1];
+			filename = argv[argc - NT_LEN];
 
 	FILE *fp = fopen(filename, "w");
 
 	if (from_zero)
-		for (int i = 1; i <= entry_len ; i++)
+		for (int i = MIN_ENTRY_LEN; i <= entry_len ; i++)
 			gen_entries(choice_set, i, fp);
 	else
 		gen_entries(choice_set, entry_len, fp);
