@@ -14,6 +14,7 @@
     GNU General Public License for more details.
 */
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,6 +32,7 @@
 #define NEXT_INDEX 1
 #define FIRST_ELEM 0
 #define PREV_INDEX 1
+#define NEWLINE_LEN 1
 #define NULL_STR_LEN -1
 #define MIN_ENTRY_LEN 1
 #define DEFAULT_ENTRY_LEN 8
@@ -38,14 +40,12 @@
 #define DEFAULT_FILENAME "list.txt"
 #define DEFAULT_CHOICE_SET "0123456789"
 
-int get_total_ammount_of_entries(void) {
-	// strlen(choce_set)^entry_len;
-	return 0;
+int get_total_ammount_of_entries(char *choice_set, int entry_len) {
+	return (int) pow(choice_set, entry_len);
 }
 
-int get_exact_filesize(void) { // In bytes
-	// get_total_ammount_of_entries * 8;
-	return 0;
+int get_exact_filesize(char *choice_set, int entry_len) { // In bytes
+	return get_total_ammount_of_entries(char *choice_set, int entry_len) * (entry_len + NEWLINE_LEN);
 }
 
 char get_next_char(const char c, const char *const choice_set) {
