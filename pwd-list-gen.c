@@ -91,7 +91,7 @@ int main(const int argc, char *const argv[]) {
 	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + 1] = DEFAULT_CHOICE_SET;
 
 	if (argc > 7) {
-		printf("Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n");
+		printf("Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -103,7 +103,7 @@ int main(const int argc, char *const argv[]) {
 		switch (opt) {
 		case 'h':
 			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: ./a [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
+				"Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
 				"\tOptions:\n\n"
 				"\t-h\tHelp menu\n\n"
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
