@@ -27,7 +27,7 @@
 #define NT_LEN 1
 #define EXT_LEN 4
 #define ARG_MAX 7
-#define NULL_OPT 0
+#define NULL_OPT -1
 #define NEXT_INDEX 1
 #define FIRST_ELEM 0
 #define PREV_INDEX 1
