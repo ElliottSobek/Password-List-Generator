@@ -208,5 +208,5 @@ int main(const int argc, char *const argv[]) {
 
 	fclose(fp);
 
-	return 1;
+	return 0;
 }
