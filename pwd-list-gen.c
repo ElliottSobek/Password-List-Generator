@@ -23,7 +23,7 @@
 
 #define NUM_LEN 10
 #define ALPHA_LEN 26
-#define SYMBOL_LEN 33
+#define SYMBOL_LEN 36
 
 #define NT_LEN 1
 #define EXT_LEN 4
@@ -33,6 +33,7 @@
 #define FIRST_ELEM 0
 #define PREV_INDEX 1
 #define NEWLINE_LEN 1
+#define MAX_STR_LEN 98
 #define NULL_STR_LEN -1
 #define MIN_ENTRY_LEN 1
 #define DEFAULT_ENTRY_LEN 8
@@ -41,15 +42,15 @@
 #define DEFAULT_CHOICE_SET "0123456789"
 
 int get_total_amount_of_entries(char *choice_set, int entry_len) {
-	return (int) pow((double) strlen(choice_set), (double) entry_len);
+	return (int) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
 }
 
 int get_exact_filesize(char *choice_set, int entry_len) { // In bytes
-	return get_total_amount_of_entries(choice_set, getentry_len) * (entry_len + NEWLINE_LEN);
+	return get_total_amount_of_entries(choice_set, entry_len) * (entry_len + NEWLINE_LEN);
 }
 
 char get_next_char(const char c, const char *const choice_set) {
-	const size_t len_n = strlen(choice_set);
+	const size_t len_n = strnlen(choice_set, MAX_STR_LEN);
 
 	for (unsigned int i = 0; i < len_n; i++)
 		if (c == choice_set[i])
@@ -59,7 +60,7 @@ char get_next_char(const char c, const char *const choice_set) {
 
 void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 	const char *const choices = choice_set;
-	const size_t len_n = strlen(choices);
+	const size_t len_n = strnlen(choices, MAX_STR_LEN);
 	const char last_elem = choices[len_n - NT_LEN];
 	char entry[entry_len + NT_LEN], end_entry[entry_len + NT_LEN];
 
@@ -105,7 +106,7 @@ int main(const int argc, char *const argv[]) {
 	upper[ALPHA_LEN + NT_LEN] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	symbol[SYMBOL_LEN + NT_LEN] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
 	const char *extension = "", *filename = DEFAULT_FILENAME;
-	char choice_set[NUM_LEN + ALPHA_LEN + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
+	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
 
 	if (argc > ARG_MAX) {
 		printf("Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n");
