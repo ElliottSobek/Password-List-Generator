@@ -23,7 +23,7 @@
 
 #define NUM_LEN 10
 #define ALPHA_LEN 26
-#define SYMBOL_LEN 36
+#define SYMBOL_LEN 33
 
 #define NT_LEN 1
 #define EXT_LEN 4
@@ -41,12 +41,22 @@
 #define DEFAULT_FILENAME "list.txt"
 #define DEFAULT_CHOICE_SET "0123456789"
 
-int get_total_amount_of_entries(char *choice_set, int entry_len) {
-	return (int) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
-}
+char *get_estimated_filesize(char *const buffer, const char *const choice_set, const int entry_len) {
+	const char fs_units[6] = {'B', 'K', 'M', 'G', 'T', 'P'};
+	const unsigned long long data_denom[6] = {1, 1024, 1024000, 1024000000, 1024000000000, 1024000000000000};
+	const double fs_size = (pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len) * (entry_len + 1));
+	double reduced_fs = 0;
 
-int get_exact_filesize(char *choice_set, int entry_len) { // In bytes
-	return get_total_amount_of_entries(choice_set, entry_len) * (entry_len + NEWLINE_LEN);
+	for (int i = 5; i > -1; i--) {
+		reduced_fs = fs_size / data_denom[i];
+
+		if (reduced_fs > 1) {
+			snprintf(buffer, 7, "%.1f%c", reduced_fs, fs_units[i]);
+			memcpy(buffer, buffer, 6);
+			return buffer;
+		}
+	}
+	return "0B";
 }
 
 char get_next_char(const char c, const char *const choice_set) {
@@ -106,7 +116,8 @@ int main(const int argc, char *const argv[]) {
 	upper[ALPHA_LEN + NT_LEN] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	symbol[SYMBOL_LEN + NT_LEN] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
 	const char *extension = "", *filename = DEFAULT_FILENAME;
-	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
+	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
+	fs_buf[7] = "";
 
 	if (argc > ARG_MAX) {
 		printf("Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n");
@@ -190,8 +201,8 @@ int main(const int argc, char *const argv[]) {
 	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
 		"This program comes with ABSOLUTELY NO WARRANTY.\n"
 		"This is free software, and you are welcome to redistribute it\n"
-		"under certain conditions.\n");
-
+		"under certain conditions.\n\n"
+		"The estimated file size will be: %s\n", get_estimated_filesize(fs_buf, choice_set, entry_len));
 
 	extension = strrchr(argv[argc - NT_LEN], '.');
 	if (extension)
