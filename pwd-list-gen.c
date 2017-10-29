@@ -40,6 +40,87 @@
 
 #define DEFAULT_FILENAME "list.txt"
 #define DEFAULT_CHOICE_SET "0123456789"
+#define NUMS "0123456789"
+#define LOWER "abcdefghijklmnopqrstuvwxyz"
+#define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define SYMBOL "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? "
+
+bool _from_zero = false;
+
+void compute_flags(int *const entry_len, char *const choice_set, const int argc, char *const argv[]) {
+	int opt = NULL_OPT;
+
+	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
+		switch (opt) {
+		case 'h':
+			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
+				"Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
+				"\tOptions:\n\n"
+				"\t-h\tHelp menu\n\n"
+				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
+				"\t-l\tSet password length\n\n"
+				"\t-c\tChoose character set (DEFAULT: NUM)\n"
+				"\t\tu UPPER\n"
+				"\t\tl LOWER\n"
+				"\t\tp ALPHA\n"
+				"\t\ta ALNUM\n"
+				"\t\tw NUM + LOWER\n"
+				"\t\te NUM + UPPER\n"
+				"\t\ts ALNUM + SYMBOL\n");
+			exit(EXIT_SUCCESS);
+			break;
+		case 'l':
+			*entry_len = atoi(optarg);
+			if (*entry_len < MIN_ENTRY_LEN) {
+				printf("Password length must be one (1) or bigger\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'a':
+			_from_zero = true;
+			break;
+		case 'c':
+			strncpy(choice_set, "", 1);
+			switch (optarg[FIRST_ELEM]) {
+			case 'u':
+				strncat(choice_set, UPPER, ALPHA_LEN);
+				break;
+			case 'l':
+				strncat(choice_set, LOWER, ALPHA_LEN);
+				break;
+			case 'p':
+				strncat(choice_set, UPPER, ALPHA_LEN);
+				strncat(choice_set, LOWER, ALPHA_LEN);
+				break;
+			case 'a':
+				strncat(choice_set, NUMS, NUM_LEN);
+				strncat(choice_set, UPPER, ALPHA_LEN);
+				strncat(choice_set, LOWER, ALPHA_LEN);
+				break;
+			case 'w':
+				strncat(choice_set, NUMS, NUM_LEN);
+				strncat(choice_set, LOWER, ALPHA_LEN);
+				break;
+			case 'e':
+				strncat(choice_set, NUMS, NUM_LEN);
+				strncat(choice_set, UPPER, ALPHA_LEN);
+				break;
+			case 's':
+				strncat(choice_set, NUMS, NUM_LEN);
+				strncat(choice_set, UPPER, ALPHA_LEN);
+				strncat(choice_set, LOWER, ALPHA_LEN);
+				strncat(choice_set, SYMBOL, SYMBOL_LEN);
+				break;
+			default:
+				fprintf(stderr, "Error. Unrecognized character set option.\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		default:
+			exit(EXIT_FAILURE);
+		}
+	}
+}
 
 char *get_estimated_filesize(char *const buffer, const char *const choice_set, const int entry_len) {
 	const char fs_units[6] = {'B', 'K', 'M', 'G', 'T', 'P'};
@@ -96,6 +177,7 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 				if (entry[i - PREV_INDEX] == last_elem)
 					continue;
 
+				// printf("%s\n", entry);
 				fprintf(fp, "%s\n", entry);
 				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choices);
 
@@ -104,17 +186,15 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 			}
 			break;
 		}
+		// printf("%s\n", entry);
 		fprintf(fp, "%s\n", entry);
 		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choices);
 	}
+	// printf("%s\n", entry);
 	fprintf(fp, "%s\n", entry);
 }
 
 int main(const int argc, char *const argv[]) {
-	const char num[NUM_LEN + NT_LEN] = "0123456789",
-	lower[ALPHA_LEN + NT_LEN] = "abcdefghijklmnopqrstuvwxyz",
-	upper[ALPHA_LEN + NT_LEN] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	symbol[SYMBOL_LEN + NT_LEN] = "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? ";
 	const char *extension = "", *filename = DEFAULT_FILENAME;
 	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
 	fs_buf[7] = "";
@@ -124,79 +204,9 @@ int main(const int argc, char *const argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	int opt = NULL_OPT, entry_len = DEFAULT_ENTRY_LEN;
-	bool from_zero = false;
+	int entry_len = DEFAULT_ENTRY_LEN;
 
-	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
-		switch (opt) {
-		case 'h':
-			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
-				"\tOptions:\n\n"
-				"\t-h\tHelp menu\n\n"
-				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
-				"\t-l\tSet password length\n\n"
-				"\t-c\tChoose character set (DEFAULT: NUM)\n"
-				"\t\tu UPPER\n"
-				"\t\tl LOWER\n"
-				"\t\tp ALPHA\n"
-				"\t\ta ALNUM\n"
-				"\t\tw NUM + LOWER\n"
-				"\t\te NUM + UPPER\n"
-				"\t\ts ALNUM + SYMBOL\n");
-			exit(EXIT_SUCCESS);
-			break;
-		case 'l':
-			entry_len = atoi(optarg);
-			if (entry_len < MIN_ENTRY_LEN) {
-				printf("Password length must be one (1) or bigger\n");
-				exit(EXIT_FAILURE);
-			}
-			break;
-		case 'a':
-			from_zero = true;
-			break;
-		case 'c':
-			strncpy(choice_set, "", 1);
-			switch (optarg[FIRST_ELEM]) {
-			case 'u':
-				strncat(choice_set, upper, ALPHA_LEN);
-				break;
-			case 'l':
-				strncat(choice_set, lower, ALPHA_LEN);
-				break;
-			case 'p':
-				strncat(choice_set, upper, ALPHA_LEN);
-				strncat(choice_set, lower, ALPHA_LEN);
-				break;
-			case 'a':
-				strncat(choice_set, num, NUM_LEN);
-				strncat(choice_set, upper, ALPHA_LEN);
-				strncat(choice_set, lower, ALPHA_LEN);
-				break;
-			case 'w':
-				strncat(choice_set, num, NUM_LEN);
-				strncat(choice_set, lower, ALPHA_LEN);
-				break;
-			case 'e':
-				strncat(choice_set, num, NUM_LEN);
-				strncat(choice_set, upper, ALPHA_LEN);
-				break;
-			case 's':
-				strncat(choice_set, num, NUM_LEN);
-				strncat(choice_set, upper, ALPHA_LEN);
-				strncat(choice_set, lower, ALPHA_LEN);
-				strncat(choice_set, symbol, SYMBOL_LEN);
-				break;
-			default:
-				fprintf(stderr, "Error. Unrecognized character set option.\n");
-				exit(EXIT_FAILURE);
-			}
-			break;
-		default:
-			exit(EXIT_FAILURE);
-		}
-	}
+	compute_flags(&entry_len, choice_set, argc, argv);
 
 	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
 		"This program comes with ABSOLUTELY NO WARRANTY.\n"
@@ -204,14 +214,14 @@ int main(const int argc, char *const argv[]) {
 		"under certain conditions.\n\n"
 		"The estimated file size will be: %s\n", get_estimated_filesize(fs_buf, choice_set, entry_len));
 
-	extension = strrchr(argv[argc - NT_LEN], '.');
+	extension = strrchr(argv[argc - NT_LEN], '.'); // Extract process as function?
 	if (extension)
 		if (strncmp(extension, ".txt", EXT_LEN) == 0)
 			filename = argv[argc - NT_LEN];
 
 	FILE *fp = fopen(filename, "w");
 
-	if (from_zero)
+	if (_from_zero)
 		for (int i = MIN_ENTRY_LEN; i <= entry_len ; i++)
 			gen_entries(choice_set, i, fp);
 	else
