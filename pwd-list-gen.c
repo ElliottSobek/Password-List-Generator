@@ -45,12 +45,12 @@
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? "
 
-bool _from_zero = false;
+bool _from_zero = false, _fs_flag = false;
 
 void compute_flags(int *const entry_len, char *const choice_set, const int argc, char *const argv[]) {
 	int opt = NULL_OPT;
 
-	while ((opt = getopt(argc, argv, "hal:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "hagl:c:")) != -1) {
 		switch (opt) {
 		case 'h':
 			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
@@ -58,6 +58,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 				"\tOptions:\n\n"
 				"\t-h\tHelp menu\n\n"
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
+				"\t-g\tDisplay only the estimated filesize\n"
 				"\t-l\tSet password length\n\n"
 				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
@@ -78,6 +79,9 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 			break;
 		case 'a':
 			_from_zero = true;
+			break;
+		case 'g':
+			_fs_flag = true;
 			break;
 		case 'c':
 			strncpy(choice_set, "", 1);
@@ -195,15 +199,15 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 }
 
 int main(const int argc, char *const argv[]) {
-	const char *extension = "", *filename = DEFAULT_FILENAME;
-	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
-	fs_buf[7] = "";
 
 	if (argc > ARG_MAX) {
-		printf("Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n");
+		printf("Usage: ./pwd-list-gen [-hag] [-l unsigned int] [-c Char set] <filename>\n");
 		exit(EXIT_FAILURE);
 	}
 
+	const char *extension = "", *filename = DEFAULT_FILENAME;
+	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
+	fs_buf[7] = "";
 	int entry_len = DEFAULT_ENTRY_LEN;
 
 	compute_flags(&entry_len, choice_set, argc, argv);
@@ -213,6 +217,9 @@ int main(const int argc, char *const argv[]) {
 		"This is free software, and you are welcome to redistribute it\n"
 		"under certain conditions.\n\n"
 		"The estimated file size will be: %s\n", get_estimated_filesize(fs_buf, choice_set, entry_len));
+
+	if (_fs_flag)
+		exit(EXIT_SUCCESS);
 
 	extension = strrchr(argv[argc - NT_LEN], '.'); // Extract process as function?
 	if (extension)
