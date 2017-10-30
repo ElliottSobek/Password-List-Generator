@@ -1,16 +1,19 @@
 # Password-List-Generator
 
-Generates all possible password combinations to a file.
+Generates all possible password permutations to a file.
 
 Runs on a unix like environment with gcc installed.
 
 ### Options
 
-* Choose password length (-l \<unsigned int>)
-* Choose character set (-c \<choice>)
+* Print help menu (-h)
 * Generate passwords from length 1 to the specified length (-a)
+* Calculate only estimated file size (-g)
+* Generate no output to stdout (-q)
+* Choose password length (-l \<unsigned int>) (DEFAULT: 8)
+* Choose character set (-c \<choice>)
 
-* Character set options:
+* Character set options (DEFAULT: Num):
     * u (Upper case)
     * l (Lower case)
     * p (Alpha)
