@@ -40,12 +40,12 @@
 #define MIN_ENTRY_LEN 1
 #define DEFAULT_ENTRY_LEN 8
 
-#define DEFAULT_FILENAME "list.txt"
-#define DEFAULT_CHOICE_SET "0123456789"
 #define NUMS "0123456789"
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? "
+#define DEFAULT_FILENAME "list.txt"
+#define DEFAULT_CHOICE_SET "0123456789"
 
 unsigned long long _entry_count = 0;
 
@@ -86,7 +86,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
 				"\t-g\tDisplay only the estimated filesize\n\n"
 				"\t-q\tQuiet; Do not output to screen\n\n"
-				"\t-l\tSet password length\n\n"
+				"\t-l\tSet password length (DEFAULT: 8)\n\n"
 				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
 				"\t\tl LOWER\n"
@@ -243,11 +243,12 @@ int main(const int argc, char *const argv[]) {
 
 	compute_flags(&entry_len, choice_set, argc, argv);
 
-	printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
-		"This program comes with ABSOLUTELY NO WARRANTY.\n"
-		"This is free software, and you are welcome to redistribute it\n"
-		"under certain conditions.\n\n"
-		"The estimated file size will be: %s\n", get_estimated_filesize(fs_buf, choice_set, entry_len));
+	if (!_quiet_flag)
+		printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
+			"This program comes with ABSOLUTELY NO WARRANTY.\n"
+			"This is free software, and you are welcome to redistribute it\n"
+			"under certain conditions.\n\n"
+			"The estimated file size will be: %s\n", get_estimated_filesize(fs_buf, choice_set, entry_len));
 
 	if (_fs_flag)
 		exit(EXIT_SUCCESS);
