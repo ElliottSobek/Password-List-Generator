@@ -47,7 +47,7 @@
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? "
 
-unsigned int _entry_count = 0;
+unsigned long long _entry_count = 0;
 
 bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
 
@@ -56,14 +56,19 @@ unsigned long long get_total_entries(const char *const choice_set, const int ent
 }
 
 void *process_time_stats(void *total_entries) {
-	double percent_done = 0;
 	const unsigned long long t_entries = (unsigned long long) total_entries;
+	unsigned long long pentry_count = 0;
+	unsigned int entry_ratio = 0;
+	double percent_done = 0;
 
 	while (_entry_count != t_entries) {
-		sleep(5);
+		sleep(30);
 		percent_done = ((double) _entry_count / (double) t_entries) * 100;
+		entry_ratio = (_entry_count - pentry_count) / 30;
 
-		printf("%u of %llu entries generated. %.2f%% finished\n", _entry_count, t_entries, percent_done);
+		printf("%llu of %llu entries generated (%u entries/s). %.2f%% finished\n",
+			_entry_count, t_entries, entry_ratio, percent_done);
+		pentry_count = _entry_count;
 	}
 	pthread_exit(NULL);
 }
@@ -231,8 +236,8 @@ int main(const int argc, char *const argv[]) {
 	}
 
 	const char *extension = "", *filename = DEFAULT_FILENAME;
-	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
-	fs_buf[7] = "";
+		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
+			   fs_buf[7] = "";
 	int entry_len = DEFAULT_ENTRY_LEN;
 	pthread_t pthread_id = -1;
 
