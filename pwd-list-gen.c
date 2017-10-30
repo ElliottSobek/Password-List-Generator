@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #define NUM_LEN 10
 #define ALPHA_LEN 26
@@ -45,7 +46,26 @@
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? "
 
+unsigned int _entry_count = 0;
+
 bool _from_zero = false, _fs_flag = false;
+
+unsigned long long get_total_entries(const char *const choice_set, const int entry_len) {
+	return (unsigned int) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
+}
+
+void *process_time_stats(void *total_entries) {
+	double percent_done = 0;
+	const unsigned long long t_entries = (unsigned long long) total_entries;
+
+	while (_entry_count != t_entries) {
+		sleep(30);
+		percent_done = ((double) _entry_count / (double) t_entries) * 100;
+
+		printf("%u of %llu entries generated. %.2f%% finished\n", _entry_count, t_entries, percent_done);
+	}
+	pthread_exit(NULL);
+}
 
 void compute_flags(int *const entry_len, char *const choice_set, const int argc, char *const argv[]) {
 	int opt = NULL_OPT;
@@ -58,7 +78,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 				"\tOptions:\n\n"
 				"\t-h\tHelp menu\n\n"
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
-				"\t-g\tDisplay only the estimated filesize\n"
+				"\t-g\tDisplay only the estimated filesize\n\n"
 				"\t-l\tSet password length\n\n"
 				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
@@ -129,7 +149,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 char *get_estimated_filesize(char *const buffer, const char *const choice_set, const int entry_len) {
 	const char fs_units[6] = {'B', 'K', 'M', 'G', 'T', 'P'};
 	const unsigned long long data_denom[6] = {1, 1024, 1024000, 1024000000, 1024000000000, 1024000000000000};
-	const double fs_size = (pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len) * (entry_len + 1));
+	const double fs_size = (get_total_entries(choice_set, entry_len) * (entry_len + 1));
 	double reduced_fs = 0;
 
 	for (int i = 5; i > -1; i--) {
@@ -181,8 +201,8 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 				if (entry[i - PREV_INDEX] == last_elem)
 					continue;
 
-				// printf("%s\n", entry);
 				fprintf(fp, "%s\n", entry);
+				_entry_count++;
 				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choices);
 
 				for (int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
@@ -190,12 +210,12 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 			}
 			break;
 		}
-		// printf("%s\n", entry);
 		fprintf(fp, "%s\n", entry);
+		_entry_count++;
 		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choices);
 	}
-	// printf("%s\n", entry);
 	fprintf(fp, "%s\n", entry);
+	_entry_count++;
 }
 
 int main(const int argc, char *const argv[]) {
@@ -209,6 +229,7 @@ int main(const int argc, char *const argv[]) {
 	char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
 	fs_buf[7] = "";
 	int entry_len = DEFAULT_ENTRY_LEN;
+	pthread_t pthread_id = -1;
 
 	compute_flags(&entry_len, choice_set, argc, argv);
 
@@ -228,6 +249,8 @@ int main(const int argc, char *const argv[]) {
 
 	FILE *fp = fopen(filename, "w");
 
+	pthread_create(&pthread_id, NULL, &process_time_stats, (void *) get_total_entries(choice_set, entry_len));
+
 	if (_from_zero)
 		for (int i = MIN_ENTRY_LEN; i <= entry_len ; i++)
 			gen_entries(choice_set, i, fp);
@@ -235,6 +258,7 @@ int main(const int argc, char *const argv[]) {
 		gen_entries(choice_set, entry_len, fp);
 
 	fclose(fp);
+	pthread_join(pthread_id, NULL);
 
 	return 0;
 }
