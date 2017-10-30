@@ -19,6 +19,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <libgen.h>
 #include <stdbool.h>
 #include <pthread.h>
 
@@ -48,7 +49,7 @@
 
 unsigned int _entry_count = 0;
 
-bool _from_zero = false, _fs_flag = false;
+bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
 
 unsigned long long get_total_entries(const char *const choice_set, const int entry_len) {
 	return (unsigned int) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
@@ -59,7 +60,7 @@ void *process_time_stats(void *total_entries) {
 	const unsigned long long t_entries = (unsigned long long) total_entries;
 
 	while (_entry_count != t_entries) {
-		sleep(30);
+		sleep(5);
 		percent_done = ((double) _entry_count / (double) t_entries) * 100;
 
 		printf("%u of %llu entries generated. %.2f%% finished\n", _entry_count, t_entries, percent_done);
@@ -70,15 +71,16 @@ void *process_time_stats(void *total_entries) {
 void compute_flags(int *const entry_len, char *const choice_set, const int argc, char *const argv[]) {
 	int opt = NULL_OPT;
 
-	while ((opt = getopt(argc, argv, "hagl:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "hagql:c:")) != -1) {
 		switch (opt) {
 		case 'h':
 			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: ./pwd-list-gen [-ha] [-l unsigned int] [-c Char set] <filename>\n\n"
+				"Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n\n"
 				"\tOptions:\n\n"
 				"\t-h\tHelp menu\n\n"
 				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
 				"\t-g\tDisplay only the estimated filesize\n\n"
+				"\t-q\tQuiet; Do not output to screen\n\n"
 				"\t-l\tSet password length\n\n"
 				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
@@ -87,7 +89,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 				"\t\ta ALNUM\n"
 				"\t\tw NUM + LOWER\n"
 				"\t\te NUM + UPPER\n"
-				"\t\ts ALNUM + SYMBOL\n");
+				"\t\ts ALNUM + SYMBOL\n", basename(argv[0]));
 			exit(EXIT_SUCCESS);
 			break;
 		case 'l':
@@ -102,6 +104,9 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 			break;
 		case 'g':
 			_fs_flag = true;
+			break;
+		case 'q':
+			_quiet_flag = true;
 			break;
 		case 'c':
 			strncpy(choice_set, "", 1);
@@ -221,7 +226,7 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
-		printf("Usage: ./pwd-list-gen [-hag] [-l unsigned int] [-c Char set] <filename>\n");
+		printf("Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n", basename(argv[0]));
 		exit(EXIT_FAILURE);
 	}
 
@@ -249,7 +254,8 @@ int main(const int argc, char *const argv[]) {
 
 	FILE *fp = fopen(filename, "w");
 
-	pthread_create(&pthread_id, NULL, &process_time_stats, (void *) get_total_entries(choice_set, entry_len));
+	if (!_quiet_flag)
+		pthread_create(&pthread_id, NULL, &process_time_stats, (void *) get_total_entries(choice_set, entry_len));
 
 	if (_from_zero)
 		for (int i = MIN_ENTRY_LEN; i <= entry_len ; i++)
@@ -258,7 +264,11 @@ int main(const int argc, char *const argv[]) {
 		gen_entries(choice_set, entry_len, fp);
 
 	fclose(fp);
-	pthread_join(pthread_id, NULL);
+
+	if (!_quiet_flag) {
+		pthread_cancel(pthread_id);
+		pthread_join(pthread_id, NULL);
+	}
 
 	return 0;
 }
