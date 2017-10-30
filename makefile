@@ -14,9 +14,9 @@
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O3
+CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g
 
-LDLIBS = -lm
+LDLIBS = -lm -pthread
 
 .PHONY: all clean
 
