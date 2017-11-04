@@ -29,7 +29,7 @@ for even an 8 character english alphanumeric w/ symbols creating said password
 list will likely take a few years to complete.
 
 2. A  more minor limitation is memory. An 8 character password list only using
-numbers as a choice set generates about a 100MB file, as a result password
+numbers as a choice set generates about a 858MB file, as a result password
 lists can become very large.
 
 ### List generation optimization
