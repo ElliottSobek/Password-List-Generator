@@ -114,33 +114,31 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 			_quiet_flag = true;
 			break;
 		case 'c':
-			strncpy(choice_set, "", 1);
 			switch (optarg[FIRST_ELEM]) {
 			case 'u':
+				strncpy(choice_set, "", 1);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				break;
 			case 'l':
+				strncpy(choice_set, "", 1);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'p':
+				strncpy(choice_set, "", 1);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'a':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'w':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'e':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				break;
 			case 's':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				strncat(choice_set, SYMBOL, SYMBOL_LEN);
@@ -159,7 +157,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 char *get_estimated_filesize(char *const buffer, const char *const choice_set, const int entry_len) {
 	const char fs_units[6] = {'B', 'K', 'M', 'G', 'T', 'P'};
 	const unsigned long long data_denom[6] = {1, 1024, 1048576, 1073741824, 1099511627776, 1125899906842624};
-	const double fs_size = (get_total_entries(choice_set, entry_len) * (entry_len + 1));
+	const double fs_size = get_total_entries(choice_set, entry_len) * (entry_len + 1);
 	double reduced_fs = 0;
 
 	for (int i = 5; i > -1; i--) {
