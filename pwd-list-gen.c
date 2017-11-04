@@ -43,7 +43,7 @@
 #define NUMS "0123456789"
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#define SYMBOL "`~!@#$%%^&*()-_=+[]\\{}|;':\",./<>? "
+#define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
 #define DEFAULT_FILENAME "list.txt"
 #define DEFAULT_CHOICE_SET "0123456789"
 
@@ -158,7 +158,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 
 char *get_estimated_filesize(char *const buffer, const char *const choice_set, const int entry_len) {
 	const char fs_units[6] = {'B', 'K', 'M', 'G', 'T', 'P'};
-	const unsigned long long data_denom[6] = {1, 1024, 1024000, 1024000000, 1024000000000, 1024000000000000};
+	const unsigned long long data_denom[6] = {1, 1024, 1048576, 1073741824, 1099511627776, 1125899906842624};
 	const double fs_size = (get_total_entries(choice_set, entry_len) * (entry_len + 1));
 	double reduced_fs = 0;
 
