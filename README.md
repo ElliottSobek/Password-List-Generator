@@ -1,16 +1,19 @@
 # Password-List-Generator
 
-Generates all possible password combinations to a file.
+Generates all possible password permutations to a file.
 
 Runs on a unix like environment with gcc installed.
 
 ### Options
 
-* Choose password length (-l \<unsigned int>)
-* Choose character set (-c \<choice>)
+* Print help menu (-h)
 * Generate passwords from length 1 to the specified length (-a)
+* Calculate only estimated file size (-g)
+* Generate no output to stdout (-q)
+* Choose password length (-l \<unsigned int>) (DEFAULT: 8)
+* Choose character set (-c \<choice>)
 
-* Character set options:
+* Character set options (DEFAULT: Num):
     * u (Upper case)
     * l (Lower case)
     * p (Alpha)
@@ -26,7 +29,7 @@ for even an 8 character english alphanumeric w/ symbols creating said password
 list will likely take a few years to complete.
 
 2. A  more minor limitation is memory. An 8 character password list only using
-numbers as a choice set generates about a 100MB file, as a result password
+numbers as a choice set generates about a 858MB file, as a result password
 lists can become very large.
 
 ### List generation optimization

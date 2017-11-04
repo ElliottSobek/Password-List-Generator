@@ -14,14 +14,16 @@
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O3
+CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g
+
+LDLIBS = -lm -pthread
 
 .PHONY: all clean
 
 all: pwd-list-gen
 
 pwd-list-gen: pwd-list-gen.o
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< $(LDLIBS) -o $@
 
 pwd-list-gen.o: pwd-list-gen.c
 
