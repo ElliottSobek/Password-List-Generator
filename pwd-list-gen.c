@@ -22,22 +22,26 @@
 #include <libgen.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <termios.h>
 
 #define NUM_LEN 10
 #define ALPHA_LEN 26
 #define SYMBOL_LEN 33
 
 #define NT_LEN 1
+#define NL_LEN 1
 #define EXT_LEN 4
 #define ARG_MAX 7
 #define NULL_OPT -1
 #define NEXT_INDEX 1
 #define FIRST_ELEM 0
 #define PREV_INDEX 1
+#define FS_OUT_LEN 6
 #define NEWLINE_LEN 1
 #define MAX_STR_LEN 98
 #define NULL_STR_LEN -1
 #define MIN_ENTRY_LEN 1
+#define DATA_DENOM_LEN 6
 #define DEFAULT_ENTRY_LEN 8
 
 #define NUMS "0123456789"
@@ -47,9 +51,39 @@
 #define DEFAULT_FILENAME "list.txt"
 #define DEFAULT_CHOICE_SET "0123456789"
 
+#define KEY_SPACE 32
+#define NULL_THREAD -1
+
+#define BYTE 1
+#define KBYTE 1024
+#define MBYTE 1048576
+#define GBYTE 1073741824
+#define TBYTE 1099511627776
+#define PBYTE 1125899906842624
+#define SECOND 1
+#define PERCENT 1
+
 unsigned long long _entry_count = 0;
 
 bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
+
+void init_kb_intterupt(struct termios kb_config) {
+	kb_config.c_lflag &= ~(ICANON | ECHO);
+	kb_config.c_cc[VMIN] = BYTE;
+	kb_config.c_cc[VTIME] = SECOND * 0;
+
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &kb_config);
+}
+
+void *enable_pause_feature(void *const restrict kb_config) {
+	init_kb_intterupt(*((struct termios *) kb_config));
+
+	while (1) {
+		if (getchar() == KEY_SPACE)
+			printf("Hit space\n");
+	}
+	return NULL;
+}
 
 unsigned long long get_total_entries(const char *const restrict choice_set, const unsigned short entry_len) {
 	return (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
@@ -59,12 +93,13 @@ void *process_time_stats(void *const restrict total_entries) {
 	const unsigned long long t_entries = (unsigned long long) total_entries;
 	unsigned long long pentry_count = 0;
 	unsigned long entry_ratio = 0;
+	unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
 	double percent_done = 0;
 
 	while (_entry_count != t_entries) {
 		sleep(30);
-		percent_done = ((double) _entry_count / (double) t_entries) * 100;
-		entry_ratio = (_entry_count - pentry_count) / 30;
+		percent_done = ((double) _entry_count / (double) t_entries) * hundred_percent;
+		entry_ratio = (_entry_count - pentry_count) / denominator;
 
 		printf("%llu of %llu entries generated (%lu entries/s). %.2f%% finished\n",
 			_entry_count, t_entries, entry_ratio, percent_done);
@@ -94,7 +129,7 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 				"\t\ta ALNUM\n"
 				"\t\tw NUM + LOWER\n"
 				"\t\te NUM + UPPER\n"
-				"\t\ts ALNUM + SYMBOL\n", basename(argv[0]));
+				"\t\ts ALNUM + SYMBOL\n", basename(argv[FIRST_ELEM]));
 			exit(EXIT_SUCCESS);
 			break;
 		case 'l':
@@ -116,15 +151,15 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 		case 'c':
 			switch (optarg[FIRST_ELEM]) {
 			case 'u':
-				strncpy(choice_set, "", 1);
+				choice_set[FIRST_ELEM] = '\0';
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				break;
 			case 'l':
-				strncpy(choice_set, "", 1);
+				choice_set[FIRST_ELEM] = '\0';
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'p':
-				strncpy(choice_set, "", 1);
+				choice_set[FIRST_ELEM] = '\0';
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
@@ -155,17 +190,16 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 }
 
 char *get_estimated_filesize(char *const restrict buffer, const char *const restrict choice_set, const unsigned short entry_len) {
-	const char fs_units[6] = {'B', 'K', 'M', 'G', 'T', 'P'};
-	const unsigned long long data_denom[6] = {1, 1024, 1048576, 1073741824, 1099511627776, 1125899906842624};
-	const double fs_size = get_total_entries(choice_set, entry_len) * (entry_len + 1);
+	const char fs_units[DATA_DENOM_LEN] = {'B', 'K', 'M', 'G', 'T', 'P'};
+	const unsigned long long data_denom[DATA_DENOM_LEN] = {BYTE, KBYTE, MBYTE, GBYTE, TBYTE, PBYTE};
+	const double fs_size = get_total_entries(choice_set, entry_len) * (entry_len + NL_LEN);
 	double reduced_fs = 0;
 
-	for (int i = 5; i > -1; i--) {
+	for (int i = DATA_DENOM_LEN - 1; i > -1; i--) {
 		reduced_fs = fs_size / data_denom[i];
 
 		if (reduced_fs > 1) {
-			snprintf(buffer, 7, "%.1f%c", reduced_fs, fs_units[i]);
-			memcpy(buffer, buffer, 6);
+			snprintf(buffer, FS_OUT_LEN + NT_LEN, "%.1f%c", reduced_fs, fs_units[i]);
 			return buffer;
 		}
 	}
@@ -229,15 +263,19 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, FILE
 int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
-		printf("Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n", basename(argv[0]));
+		printf("Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n", basename(argv[FIRST_ELEM]));
 		exit(EXIT_FAILURE);
 	}
 
 	const char *restrict extension = "", *restrict filename = DEFAULT_FILENAME;
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
-			   fs_buf[7] = "";
+			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
 	short entry_len = DEFAULT_ENTRY_LEN;
-	pthread_t pthread_id = -1;
+	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
+	struct termios kb_config;
+
+	if (!isatty(STDIN_FILENO))
+		_quiet_flag = true;
 
 	compute_flags(&entry_len, choice_set, argc, argv);
 
@@ -246,7 +284,9 @@ int main(const int argc, char *const argv[]) {
 			"This program comes with ABSOLUTELY NO WARRANTY.\n"
 			"This is free software, and you are welcome to redistribute it\n"
 			"under certain conditions.\n\n"
-			"The estimated file size will be: %s\n", get_estimated_filesize(fs_buf, choice_set, entry_len));
+			"Total entries: %llu\n"
+			"The estimated file size will be: %s\n", get_total_entries(choice_set, entry_len),
+			get_estimated_filesize(fs_buf, choice_set, entry_len));
 
 	if (_fs_flag)
 		exit(EXIT_SUCCESS);
@@ -259,7 +299,10 @@ int main(const int argc, char *const argv[]) {
 	FILE *restrict fp = fopen(filename, "w"); // Change to open and set mode?
 
 	if (!_quiet_flag)
-		pthread_create(&pthread_id, NULL, &process_time_stats, (void *) get_total_entries(choice_set, entry_len));
+		pthread_create(&update_tid, NULL, &process_time_stats, (void *) get_total_entries(choice_set, entry_len));
+
+	tcgetattr(STDIN_FILENO, &kb_config);
+	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
 
 	if (_from_zero)
 		for (int i = MIN_ENTRY_LEN; i <= entry_len ; i++)
@@ -270,9 +313,13 @@ int main(const int argc, char *const argv[]) {
 	fclose(fp);
 
 	if (!_quiet_flag) {
-		pthread_cancel(pthread_id);
-		pthread_join(pthread_id, NULL);
+		pthread_cancel(update_tid);
+		pthread_join(update_tid, NULL);
 	}
+
+	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
+	pthread_cancel(kb_tid);
+	pthread_join(kb_tid, NULL);
 
 	return 0;
 }
