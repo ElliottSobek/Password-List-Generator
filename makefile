@@ -14,7 +14,7 @@
 
 CC = gcc
 
-CFLAGS = -x c -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g
+CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g
 
 LDLIBS = -lm -pthread
 
@@ -29,6 +29,7 @@ pwd-list-gen.o: pwd-list-gen.c
 
 asm-instr:
 	$(CC) $(CFLAGS) pwd-list-gen.c $(LDLIBS) -S
+	wc -l pwd-list-gen.s
 
 clean:
 	rm *.o
