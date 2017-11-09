@@ -54,12 +54,12 @@
 #define KEY_SPACE 32
 #define NULL_THREAD -1
 
-#define BYTE 1
-#define KBYTE 1024
-#define MBYTE 1048576
-#define GBYTE 1073741824
-#define TBYTE 1099511627776
-#define PBYTE 1125899906842624
+#define BYTE_S 1L
+#define KBYTE_S 1024L
+#define MBYTE_S ((unsigned long long) (KBYTE_S * KBYTE_S))
+#define GBYTE_S ((unsigned long long) (MBYTE_S * KBYTE_S))
+#define TBYTE_S ((unsigned long long) (GBYTE_S * KBYTE_S))
+#define PBYTE_S ((unsigned long long) (TBYTE_S * KBYTE_S))
 #define SECOND 1
 #define PERCENT 1
 
@@ -69,7 +69,7 @@ bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
 
 void init_kb_intterupt(struct termios kb_config) {
 	kb_config.c_lflag &= ~(ICANON | ECHO);
-	kb_config.c_cc[VMIN] = BYTE;
+	kb_config.c_cc[VMIN] = BYTE_S;
 	kb_config.c_cc[VTIME] = SECOND * 0;
 
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &kb_config);
@@ -85,7 +85,7 @@ void *enable_pause_feature(void *const restrict kb_config) {
 	return NULL;
 }
 
-unsigned long long get_total_entries(const char *const restrict choice_set, const unsigned short entry_len) {
+unsigned long long get_entries(const char *const restrict choice_set, const unsigned short entry_len) {
 	return (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
 }
 
@@ -189,10 +189,9 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 	}
 }
 
-char *get_estimated_filesize(char *const restrict buffer, const char *const restrict choice_set, const unsigned short entry_len) {
+char *get_estimated_filesize(char *const restrict buffer, const double fs_size) {
 	const char fs_units[DATA_DENOM_LEN] = {'B', 'K', 'M', 'G', 'T', 'P'};
-	const unsigned long long data_denom[DATA_DENOM_LEN] = {BYTE, KBYTE, MBYTE, GBYTE, TBYTE, PBYTE};
-	const double fs_size = get_total_entries(choice_set, entry_len) * (entry_len + NL_LEN);
+	const unsigned long long data_denom[DATA_DENOM_LEN] = {BYTE_S, KBYTE_S, MBYTE_S, GBYTE_S, TBYTE_S, PBYTE_S};
 	double reduced_fs = 0;
 
 	for (int i = DATA_DENOM_LEN - 1; i > -1; i--) {
@@ -271,6 +270,8 @@ int main(const int argc, char *const argv[]) {
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
 			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
 	short entry_len = DEFAULT_ENTRY_LEN;
+	unsigned long long total_entries = 0;
+	double fs_size = 0;
 	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
 	struct termios kb_config;
 
@@ -279,14 +280,26 @@ int main(const int argc, char *const argv[]) {
 
 	compute_flags(&entry_len, choice_set, argc, argv);
 
+	if (_from_zero) {
+		unsigned long long entry_amt = 0;
+		for (int i = MIN_ENTRY_LEN; i <= entry_len; i++) {
+			entry_amt = get_entries(choice_set, i);
+			total_entries += entry_amt;
+			fs_size += entry_amt * (i + NL_LEN);
+		}
+	} else {
+		total_entries = get_entries(choice_set, entry_len);
+		fs_size += total_entries * (entry_len + NL_LEN);
+	}
+
 	if (!_quiet_flag)
 		printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
 			"This program comes with ABSOLUTELY NO WARRANTY.\n"
 			"This is free software, and you are welcome to redistribute it\n"
 			"under certain conditions.\n\n"
 			"Total entries: %llu\n"
-			"The estimated file size will be: %s\n", get_total_entries(choice_set, entry_len),
-			get_estimated_filesize(fs_buf, choice_set, entry_len));
+			"The estimated file size will be: %s\n", total_entries,
+			get_estimated_filesize(fs_buf, fs_size));
 
 	if (_fs_flag)
 		exit(EXIT_SUCCESS);
@@ -299,13 +312,13 @@ int main(const int argc, char *const argv[]) {
 	FILE *restrict fp = fopen(filename, "w"); // Change to open and set mode?
 
 	if (!_quiet_flag)
-		pthread_create(&update_tid, NULL, &process_time_stats, (void *) get_total_entries(choice_set, entry_len));
+		pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries);
 
 	tcgetattr(STDIN_FILENO, &kb_config);
 	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
 
 	if (_from_zero)
-		for (int i = MIN_ENTRY_LEN; i <= entry_len ; i++)
+		for (int i = MIN_ENTRY_LEN; i <= entry_len; i++)
 			gen_entries(choice_set, i, fp);
 	else
 		gen_entries(choice_set, entry_len, fp);
