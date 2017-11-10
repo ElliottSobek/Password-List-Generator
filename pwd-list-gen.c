@@ -30,6 +30,8 @@
 
 #define NT_LEN 1
 #define NL_LEN 1
+#define SECOND 1
+#define PERCENT 1
 #define EXT_LEN 4
 #define ARG_MAX 7
 #define NUM_LEN 10
@@ -40,22 +42,21 @@
 #define PREV_INDEX 1
 #define FS_OUT_LEN 6
 #define SYMBOL_LEN 33
+#define NULL_THREAD -1
 #define NEWLINE_LEN 1
 #define MAX_STR_LEN 98
 #define NULL_STR_LEN -1
 #define MIN_ENTRY_LEN 1
 #define DATA_DENOM_LEN 6
+#define KEY_SPACE_CODE 32
 #define DEFAULT_ENTRY_LEN 8
 
 #define NUMS "0123456789"
+#define DEFAULT_CHOICE_SET NUMS
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
 #define DEFAULT_FILENAME "list.txt"
-#define DEFAULT_CHOICE_SET NUMS
-
-#define KEY_SPACE_CODE 32
-#define NULL_THREAD -1
 
 #define BYTE_S 1L
 #define KBYTE_S 1024L
@@ -63,12 +64,10 @@
 #define GBYTE_S ((unsigned long long) (MBYTE_S * KBYTE_S))
 #define TBYTE_S ((unsigned long long) (GBYTE_S * KBYTE_S))
 #define PBYTE_S ((unsigned long long) (TBYTE_S * KBYTE_S))
-#define SECOND 1
-#define PERCENT 1
 
 unsigned long long _entry_count = 0;
 
-bool _from_zero = false, _fs_flag = false, _quiet_flag = false, _finish_flag = false;
+bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
 
 void init_kb_intterupt(struct termios kb_config) {
 	kb_config.c_lflag &= ~(ICANON | ECHO);
@@ -85,7 +84,7 @@ void *enable_pause_feature(void *const restrict kb_config) {
 		if (getchar() == KEY_SPACE_CODE)
 			printf("Hit space\n");
 	}
-	pthread_exit(NULL);
+	return NULL;
 }
 
 void *process_time_stats(void *const restrict total_entries) {
@@ -104,7 +103,7 @@ void *process_time_stats(void *const restrict total_entries) {
 			_entry_count, t_entries, entry_ratio, percent_done);
 		pentry_count = _entry_count;
 	}
-	pthread_exit(NULL);
+	return NULL;
 }
 
 void compute_flags(short *const restrict entry_len, char *const restrict choice_set, const unsigned int argc, char *const argv[]) {
@@ -321,8 +320,6 @@ int main(const int argc, char *const argv[]) {
 
 	for (int i = min_len; i <= entry_len; i++)
 		gen_entries(choice_set, i, fd);
-
-	_finish_flag = true;
 
 	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
 	close(fd);
