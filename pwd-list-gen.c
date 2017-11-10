@@ -16,6 +16,8 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -23,20 +25,21 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <termios.h>
-
-#define NUM_LEN 10
-#define ALPHA_LEN 26
-#define SYMBOL_LEN 33
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define NT_LEN 1
 #define NL_LEN 1
 #define EXT_LEN 4
 #define ARG_MAX 7
+#define NUM_LEN 10
 #define NULL_OPT -1
+#define ALPHA_LEN 26
 #define NEXT_INDEX 1
 #define FIRST_ELEM 0
 #define PREV_INDEX 1
 #define FS_OUT_LEN 6
+#define SYMBOL_LEN 33
 #define NEWLINE_LEN 1
 #define MAX_STR_LEN 98
 #define NULL_STR_LEN -1
@@ -49,9 +52,9 @@
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
 #define DEFAULT_FILENAME "list.txt"
-#define DEFAULT_CHOICE_SET "0123456789"
+#define DEFAULT_CHOICE_SET NUMS
 
-#define KEY_SPACE 32
+#define KEY_SPACE_CODE 32
 #define NULL_THREAD -1
 
 #define BYTE_S 1L
@@ -65,7 +68,7 @@
 
 unsigned long long _entry_count = 0;
 
-bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
+bool _from_zero = false, _fs_flag = false, _quiet_flag = false, _finish_flag = false;
 
 void init_kb_intterupt(struct termios kb_config) {
 	kb_config.c_lflag &= ~(ICANON | ECHO);
@@ -79,14 +82,10 @@ void *enable_pause_feature(void *const restrict kb_config) {
 	init_kb_intterupt(*((struct termios *) kb_config));
 
 	while (1) {
-		if (getchar() == KEY_SPACE)
+		if (getchar() == KEY_SPACE_CODE)
 			printf("Hit space\n");
 	}
-	return NULL;
-}
-
-unsigned long long get_entries(const char *const restrict choice_set, const unsigned short entry_len) {
-	return (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
+	pthread_exit(NULL);
 }
 
 void *process_time_stats(void *const restrict total_entries) {
@@ -96,7 +95,7 @@ void *process_time_stats(void *const restrict total_entries) {
 	unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
 	double percent_done = 0;
 
-	while (_entry_count != t_entries) {
+	while (1) {
 		sleep(30);
 		percent_done = ((double) _entry_count / (double) t_entries) * hundred_percent;
 		entry_ratio = (_entry_count - pentry_count) / denominator;
@@ -214,7 +213,7 @@ char get_next_char(const char c, const char *const restrict choice_set) {
 	return '\0';
 }
 
-void gen_entries(char *restrict choice_set, const unsigned short entry_len, FILE *restrict fp) {
+void gen_entries(char *restrict choice_set, const unsigned short entry_len, const int fd) {
 	const char *const restrict choices = choice_set; // Why choices to choice_set?
 	const size_t len_n = strnlen(choices, MAX_STR_LEN);
 	const char last_elem = choices[len_n - NT_LEN];
@@ -242,7 +241,7 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, FILE
 				if (entry[i - PREV_INDEX] == last_elem)
 					continue;
 
-				fprintf(fp, "%s\n", entry);
+				dprintf(fd, "%s\n", entry);
 				_entry_count++;
 				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choices);
 
@@ -251,11 +250,11 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, FILE
 			}
 			break;
 		}
-		fprintf(fp, "%s\n", entry);
+		dprintf(fd, "%s\n", entry);
 		_entry_count++;
 		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choices);
 	}
-	fprintf(fp, "%s\n", entry);
+	dprintf(fd, "%s\n", entry);
 	_entry_count++;
 }
 
@@ -269,28 +268,26 @@ int main(const int argc, char *const argv[]) {
 	const char *restrict extension = "", *restrict filename = DEFAULT_FILENAME;
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
 			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
-	short entry_len = DEFAULT_ENTRY_LEN;
-	unsigned long long total_entries = 0;
+	short entry_len = DEFAULT_ENTRY_LEN, min_len = entry_len;
+	unsigned long long total_entries = 0, entry_amt = 0;;
 	double fs_size = 0;
 	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
+	mode_t f_mode = 0664;
 	struct termios kb_config;
-
-	if (!isatty(STDIN_FILENO))
-		_quiet_flag = true;
 
 	compute_flags(&entry_len, choice_set, argc, argv);
 
-	if (_from_zero) {
-		unsigned long long entry_amt = 0;
-		for (int i = MIN_ENTRY_LEN; i <= entry_len; i++) {
-			entry_amt = get_entries(choice_set, i);
-			total_entries += entry_amt;
-			fs_size += entry_amt * (i + NL_LEN);
-		}
-	} else {
-		total_entries = get_entries(choice_set, entry_len);
-		fs_size += total_entries * (entry_len + NL_LEN);
+	if (_from_zero)
+		min_len = MIN_ENTRY_LEN;
+
+	for (int i = min_len; i <= entry_len; i++) {
+		entry_amt = (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) i);
+		total_entries += entry_amt;
+		fs_size += entry_amt * (i + NL_LEN);
 	}
+
+	if (!isatty(STDIN_FILENO))
+		_quiet_flag = true;
 
 	if (!_quiet_flag)
 		printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
@@ -309,7 +306,12 @@ int main(const int argc, char *const argv[]) {
 		if (strncmp(extension, ".txt", EXT_LEN) == 0)
 			filename = argv[argc - NT_LEN];
 
-	FILE *restrict fp = fopen(filename, "w"); // Change to open and set mode?
+	const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
+
+	if (fd == -1) {
+		fprintf(stderr, "Error: %s for %s\n", strerror(errno), filename);
+		exit(EXIT_FAILURE);
+	}
 
 	if (!_quiet_flag)
 		pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries);
@@ -317,20 +319,18 @@ int main(const int argc, char *const argv[]) {
 	tcgetattr(STDIN_FILENO, &kb_config);
 	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
 
-	if (_from_zero)
-		for (int i = MIN_ENTRY_LEN; i <= entry_len; i++)
-			gen_entries(choice_set, i, fp);
-	else
-		gen_entries(choice_set, entry_len, fp);
+	for (int i = min_len; i <= entry_len; i++)
+		gen_entries(choice_set, i, fd);
 
-	fclose(fp);
-
-	if (!_quiet_flag) {
-		pthread_cancel(update_tid);
-		pthread_join(update_tid, NULL);
-	}
+	_finish_flag = true;
 
 	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
+	close(fd);
+
+	if (!_quiet_flag)
+		pthread_cancel(update_tid);
+		pthread_join(update_tid, NULL);
+
 	pthread_cancel(kb_tid);
 	pthread_join(kb_tid, NULL);
 
