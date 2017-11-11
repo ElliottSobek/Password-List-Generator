@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ElliottSobek/Password-List-Generator.svg?branch=master)](https://travis-ci.org/ElliottSobek/Password-List-Generator)
+
 # Password-List-Generator
 
 Generates all possible password permutations to a file.

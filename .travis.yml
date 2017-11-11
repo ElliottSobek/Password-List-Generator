@@ -1,0 +1,13 @@
+os: linux
+
+dist: trusty
+
+sudo: false
+
+group: stable
+
+language: C
+
+compiler: gcc
+
+script: make all
