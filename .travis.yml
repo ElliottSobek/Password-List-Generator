@@ -1,0 +1,7 @@
+install: make
+
+language: C
+
+compiler: gcc-6
+
+script: make
