@@ -267,8 +267,8 @@ int main(const int argc, char *const argv[]) {
 	const char *restrict extension = "", *restrict filename = DEFAULT_FILENAME;
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
 			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
-	short entry_len = DEFAULT_ENTRY_LEN, min_len = entry_len;
-	unsigned long long total_entries = 0, entry_amt = 0;;
+	short entry_len = DEFAULT_ENTRY_LEN, min_len;
+	unsigned long long total_entries = 0, entry_amt = 0;
 	double fs_size = 0;
 	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
 	mode_t f_mode = 0664;
@@ -278,6 +278,8 @@ int main(const int argc, char *const argv[]) {
 
 	if (_from_zero)
 		min_len = MIN_ENTRY_LEN;
+	else
+		min_len = entry_len;
 
 	for (int i = min_len; i <= entry_len; i++) {
 		entry_amt = (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) i);
