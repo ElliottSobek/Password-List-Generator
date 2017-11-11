@@ -1,7 +1,15 @@
-install: make
+os: linux
+
+dist: trusty
+
+sudo: false
+
+group: stable
+
+install: make build-essential
 
 language: C
 
 compiler: gcc-6
 
-script: make
+script: make all
