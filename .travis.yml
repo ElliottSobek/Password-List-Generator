@@ -6,7 +6,9 @@ sudo: false
 
 group: stable
 
-install: make build-essential
+install: 
+    - make
+    - build-essential
 
 language: C
 
