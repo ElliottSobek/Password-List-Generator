@@ -8,6 +8,6 @@ group: stable
 
 language: C
 
-compiler: gcc-6
+compiler: gcc
 
 script: make all
