@@ -16,64 +16,97 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
 #include <stdbool.h>
 #include <pthread.h>
-
-#define NUM_LEN 10
-#define ALPHA_LEN 26
-#define SYMBOL_LEN 33
+#include <termios.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define NT_LEN 1
+#define NL_LEN 1
+#define SECOND 1
+#define PERCENT 1
 #define EXT_LEN 4
 #define ARG_MAX 7
+#define NUM_LEN 10
 #define NULL_OPT -1
+#define ALPHA_LEN 26
 #define NEXT_INDEX 1
 #define FIRST_ELEM 0
 #define PREV_INDEX 1
+#define FS_OUT_LEN 6
+#define SYMBOL_LEN 33
+#define NULL_THREAD -1
 #define NEWLINE_LEN 1
 #define MAX_STR_LEN 98
 #define NULL_STR_LEN -1
 #define MIN_ENTRY_LEN 1
+#define DATA_DENOM_LEN 6
+#define KEY_SPACE_CODE 32
 #define DEFAULT_ENTRY_LEN 8
 
 #define NUMS "0123456789"
+#define DEFAULT_CHOICE_SET NUMS
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
 #define DEFAULT_FILENAME "list.txt"
-#define DEFAULT_CHOICE_SET "0123456789"
+
+#define BYTE_S 1L
+#define KBYTE_S 1024L
+#define MBYTE_S ((unsigned long long) (KBYTE_S * KBYTE_S))
+#define GBYTE_S ((unsigned long long) (MBYTE_S * KBYTE_S))
+#define TBYTE_S ((unsigned long long) (GBYTE_S * KBYTE_S))
+#define PBYTE_S ((unsigned long long) (TBYTE_S * KBYTE_S))
 
 unsigned long long _entry_count = 0;
 
 bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
 
-unsigned long long get_total_entries(const char *const choice_set, const int entry_len) {
-	return (unsigned int) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) entry_len);
+void init_kb_intterupt(struct termios kb_config) {
+	kb_config.c_lflag &= ~(ICANON | ECHO);
+	kb_config.c_cc[VMIN] = BYTE_S;
+	kb_config.c_cc[VTIME] = SECOND * 0;
+
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &kb_config);
 }
 
-void *process_time_stats(void *total_entries) {
+void *enable_pause_feature(void *const restrict kb_config) {
+	init_kb_intterupt(*((struct termios *) kb_config));
+
+	while (1) {
+		if (getchar() == KEY_SPACE_CODE)
+			printf("Hit space\n");
+	}
+	return NULL;
+}
+
+void *process_time_stats(void *const restrict total_entries) {
 	const unsigned long long t_entries = (unsigned long long) total_entries;
 	unsigned long long pentry_count = 0;
-	unsigned int entry_ratio = 0;
+	unsigned long entry_ratio = 0;
+	unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
 	double percent_done = 0;
 
-	while (_entry_count != t_entries) {
+	while (1) {
 		sleep(30);
-		percent_done = ((double) _entry_count / (double) t_entries) * 100;
-		entry_ratio = (_entry_count - pentry_count) / 30;
+		percent_done = ((double) _entry_count / (double) t_entries) * hundred_percent;
+		entry_ratio = (_entry_count - pentry_count) / denominator;
 
-		printf("%llu of %llu entries generated (%u entries/s). %.2f%% finished\n",
+		printf("%llu of %llu entries generated (%lu entries/s). %.2f%% finished\n",
 			_entry_count, t_entries, entry_ratio, percent_done);
 		pentry_count = _entry_count;
 	}
-	pthread_exit(NULL);
+	return NULL;
 }
 
-void compute_flags(int *const entry_len, char *const choice_set, const int argc, char *const argv[]) {
+void compute_flags(short *const restrict entry_len, char *const restrict choice_set, const unsigned int argc, char *const argv[]) {
 	int opt = NULL_OPT;
 
 	while ((opt = getopt(argc, argv, "hagql:c:")) != -1) {
@@ -94,7 +127,7 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 				"\t\ta ALNUM\n"
 				"\t\tw NUM + LOWER\n"
 				"\t\te NUM + UPPER\n"
-				"\t\ts ALNUM + SYMBOL\n", basename(argv[0]));
+				"\t\ts ALNUM + SYMBOL\n", basename(argv[FIRST_ELEM]));
 			exit(EXIT_SUCCESS);
 			break;
 		case 'l':
@@ -114,33 +147,31 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 			_quiet_flag = true;
 			break;
 		case 'c':
-			strncpy(choice_set, "", 1);
 			switch (optarg[FIRST_ELEM]) {
 			case 'u':
+				choice_set[FIRST_ELEM] = '\0';
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				break;
 			case 'l':
+				choice_set[FIRST_ELEM] = '\0';
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'p':
+				choice_set[FIRST_ELEM] = '\0';
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'a':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'w':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				break;
 			case 'e':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				break;
 			case 's':
-				strncat(choice_set, NUMS, NUM_LEN);
 				strncat(choice_set, UPPER, ALPHA_LEN);
 				strncat(choice_set, LOWER, ALPHA_LEN);
 				strncat(choice_set, SYMBOL, SYMBOL_LEN);
@@ -156,25 +187,23 @@ void compute_flags(int *const entry_len, char *const choice_set, const int argc,
 	}
 }
 
-char *get_estimated_filesize(char *const buffer, const char *const choice_set, const int entry_len) {
-	const char fs_units[6] = {'B', 'K', 'M', 'G', 'T', 'P'};
-	const unsigned long long data_denom[6] = {1, 1024, 1048576, 1073741824, 1099511627776, 1125899906842624};
-	const double fs_size = (get_total_entries(choice_set, entry_len) * (entry_len + 1));
+char *get_estimated_filesize(char *const restrict buffer, const double fs_size) {
+	const char fs_units[DATA_DENOM_LEN] = {'B', 'K', 'M', 'G', 'T', 'P'};
+	const unsigned long long data_denom[DATA_DENOM_LEN] = {BYTE_S, KBYTE_S, MBYTE_S, GBYTE_S, TBYTE_S, PBYTE_S};
 	double reduced_fs = 0;
 
-	for (int i = 5; i > -1; i--) {
+	for (int i = DATA_DENOM_LEN - 1; i > -1; i--) {
 		reduced_fs = fs_size / data_denom[i];
 
 		if (reduced_fs > 1) {
-			snprintf(buffer, 7, "%.1f%c", reduced_fs, fs_units[i]);
-			memcpy(buffer, buffer, 6);
+			snprintf(buffer, FS_OUT_LEN + NT_LEN, "%.1f%c", reduced_fs, fs_units[i]);
 			return buffer;
 		}
 	}
 	return "0B";
 }
 
-char get_next_char(const char c, const char *const choice_set) {
+char get_next_char(const char c, const char *const restrict choice_set) {
 	const size_t len_n = strnlen(choice_set, MAX_STR_LEN);
 
 	for (unsigned int i = 0; i < len_n; i++)
@@ -183,20 +212,20 @@ char get_next_char(const char c, const char *const choice_set) {
 	return '\0';
 }
 
-void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
-	const char *const choices = choice_set;
+void gen_entries(char *restrict choice_set, const unsigned short entry_len, const int fd) {
+	const char *const restrict choices = choice_set; // Why choices to choice_set?
 	const size_t len_n = strnlen(choices, MAX_STR_LEN);
 	const char last_elem = choices[len_n - NT_LEN];
 	char entry[entry_len + NT_LEN], end_entry[entry_len + NT_LEN];
 
 	// Clear the arrays
-	for (int i = 0; i < entry_len + NT_LEN; i++) {
+	for (int i = 0; i < entry_len + NT_LEN; i++) { // Cant unsign i?
 		entry[i] = '\0';
 		end_entry[i] = '\0';
 	}
 
 	// Init string/entry
-	for (int i = 0; i < entry_len; i++) {
+	for (unsigned int i = 0; i < entry_len; i++) {
 		entry[i] = choices[FIRST_ELEM];
 		end_entry[i] = last_elem;
 	}
@@ -211,44 +240,64 @@ void gen_entries(char *choice_set, const int entry_len, FILE *fp) {
 				if (entry[i - PREV_INDEX] == last_elem)
 					continue;
 
-				fprintf(fp, "%s\n", entry);
+				dprintf(fd, "%s\n", entry);
 				_entry_count++;
 				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choices);
 
-				for (int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
+				for (unsigned int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
 					entry[j] = choices[FIRST_ELEM];
 			}
 			break;
 		}
-		fprintf(fp, "%s\n", entry);
+		dprintf(fd, "%s\n", entry);
 		_entry_count++;
 		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choices);
 	}
-	fprintf(fp, "%s\n", entry);
+	dprintf(fd, "%s\n", entry);
 	_entry_count++;
 }
 
 int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
-		printf("Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n", basename(argv[0]));
+		printf("Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n", basename(argv[FIRST_ELEM]));
 		exit(EXIT_FAILURE);
 	}
 
-	const char *extension = "", *filename = DEFAULT_FILENAME;
+	const char *restrict extension = "", *restrict filename = DEFAULT_FILENAME;
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
-			   fs_buf[7] = "";
-	int entry_len = DEFAULT_ENTRY_LEN;
-	pthread_t pthread_id = -1;
+			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
+	short entry_len = DEFAULT_ENTRY_LEN, min_len;
+	unsigned long long total_entries = 0, entry_amt = 0;
+	double fs_size = 0;
+	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
+	mode_t f_mode = 0664;
+	struct termios kb_config;
 
 	compute_flags(&entry_len, choice_set, argc, argv);
+
+	if (_from_zero)
+		min_len = MIN_ENTRY_LEN;
+	else
+		min_len = entry_len;
+
+	for (int i = min_len; i <= entry_len; i++) {
+		entry_amt = (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) i);
+		total_entries += entry_amt;
+		fs_size += entry_amt * (i + NL_LEN);
+	}
+
+	if (!isatty(STDIN_FILENO))
+		_quiet_flag = true;
 
 	if (!_quiet_flag)
 		printf("Password List Gen  Copyright (C) 2017  Elliott Sobek\n"
 			"This program comes with ABSOLUTELY NO WARRANTY.\n"
 			"This is free software, and you are welcome to redistribute it\n"
 			"under certain conditions.\n\n"
-			"The estimated file size will be: %s\n", get_estimated_filesize(fs_buf, choice_set, entry_len));
+			"Total entries: %llu\n"
+			"The estimated file size will be: %s\n", total_entries,
+			get_estimated_filesize(fs_buf, fs_size));
 
 	if (_fs_flag)
 		exit(EXIT_SUCCESS);
@@ -258,23 +307,31 @@ int main(const int argc, char *const argv[]) {
 		if (strncmp(extension, ".txt", EXT_LEN) == 0)
 			filename = argv[argc - NT_LEN];
 
-	FILE *fp = fopen(filename, "w");
+	const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
+
+	if (fd == -1) {
+		fprintf(stderr, "Error: %s for %s\n", strerror(errno), filename);
+		exit(EXIT_FAILURE);
+	}
 
 	if (!_quiet_flag)
-		pthread_create(&pthread_id, NULL, &process_time_stats, (void *) get_total_entries(choice_set, entry_len));
+		pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries);
 
-	if (_from_zero)
-		for (int i = MIN_ENTRY_LEN; i <= entry_len ; i++)
-			gen_entries(choice_set, i, fp);
-	else
-		gen_entries(choice_set, entry_len, fp);
+	tcgetattr(STDIN_FILENO, &kb_config);
+	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
 
-	fclose(fp);
+	for (int i = min_len; i <= entry_len; i++)
+		gen_entries(choice_set, i, fd);
 
-	if (!_quiet_flag) {
-		pthread_cancel(pthread_id);
-		pthread_join(pthread_id, NULL);
-	}
+	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
+	close(fd);
+
+	if (!_quiet_flag)
+		pthread_cancel(update_tid);
+		pthread_join(update_tid, NULL);
+
+	pthread_cancel(kb_tid);
+	pthread_join(kb_tid, NULL);
 
 	return 0;
 }
