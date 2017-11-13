@@ -146,15 +146,15 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 		case 'l':
 			*entry_len = atoi(optarg);
 			if (*entry_len < MIN_ENTRY_LEN) {
-				printf("Password length must be one (1) or bigger\n");
+				fprintf(stderr, "Password length must be one (1) or bigger\n");
 				exit(EXIT_FAILURE);
 			}
 			break;
 		case 'L':
 			_min_flag = true;
 			*min_len = atoi(optarg);
-			if (*min_len > *entry_len || *min_len < MIN_ENTRY_LEN) {
-				printf("Password length must be one (1) or bigger and smaller than the max len (-l)\n");
+			if (*min_len < MIN_ENTRY_LEN) {
+				fprintf(stderr, "Password length must be one (1) or bigger\n");
 				exit(EXIT_FAILURE);
 			}
 			break;
@@ -292,6 +292,11 @@ int main(const int argc, char *const argv[]) {
 	struct termios kb_config;
 
 	compute_flags(&entry_len, &min_len, filename, choice_set, argc, argv);
+
+	if (min_len > entry_len) {
+		fprintf(stderr, "Minimum length must be larger than maximum length\n");
+		exit(EXIT_FAILURE);
+	}
 
 	if (!_min_flag && !_from_zero)
 		min_len = entry_len;
