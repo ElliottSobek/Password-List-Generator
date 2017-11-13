@@ -284,7 +284,7 @@ int main(const int argc, char *const argv[]) {
 	const char *restrict extension = "";
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
 			   fs_buf[FS_OUT_LEN + NT_LEN] = "", filename[PATH_MAX + NT_LEN];
-	short entry_len = DEFAULT_ENTRY_LEN, min_len = MIN_ENTRY_LEN;
+	short entry_len = DEFAULT_ENTRY_LEN, min_len;
 	unsigned long long total_entries = 0, entry_amt = 0;
 	double fs_size = 0;
 	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
