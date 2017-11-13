@@ -106,20 +106,22 @@ void *process_time_stats(void *const restrict total_entries) {
 	return NULL;
 }
 
-void compute_flags(short *const restrict entry_len, char *const restrict choice_set, const unsigned int argc, char *const argv[]) {
+void compute_flags(short *const restrict entry_len, short *const restrict min_len,
+	char *const restrict choice_set, const unsigned int argc, char *const argv[]) {
+
 	int opt = NULL_OPT;
 
-	while ((opt = getopt(argc, argv, "hagql:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "hagql:L:c:f:")) != -1) {
 		switch (opt) {
 		case 'h':
-			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n\n"
+			printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n\n"
 				"\tOptions:\n\n"
 				"\t-h\tHelp menu\n\n"
-				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
+				"\t-a\tCreate passwords starting from length = 0 to specified length; Overrides -L\n\n"
 				"\t-g\tDisplay only the estimated filesize\n\n"
 				"\t-q\tQuiet; Do not output to screen\n\n"
-				"\t-l\tSet password length (DEFAULT: 8)\n\n"
+				"\t-L\tSet minimum password length; Can't be larger than max length\n\n"
+				"\t-l\tSet maximum password length (DEFAULT: 8)\n\n"
 				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
 				"\t\tl LOWER\n"
@@ -130,13 +132,6 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 				"\t\ts ALNUM + SYMBOL\n", basename(argv[FIRST_ELEM]));
 			exit(EXIT_SUCCESS);
 			break;
-		case 'l':
-			*entry_len = atoi(optarg);
-			if (*entry_len < MIN_ENTRY_LEN) {
-				printf("Password length must be one (1) or bigger\n");
-				exit(EXIT_FAILURE);
-			}
-			break;
 		case 'a':
 			_from_zero = true;
 			break;
@@ -145,6 +140,20 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 			break;
 		case 'q':
 			_quiet_flag = true;
+			break;
+		case 'l':
+			*entry_len = atoi(optarg);
+			if (*entry_len < MIN_ENTRY_LEN) {
+				printf("Password length must be one (1) or bigger\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'L':
+			*min_len = atoi(optarg);
+			if (*min_len > *entry_len || *min_len < MIN_ENTRY_LEN) {
+				printf("Password length must be one (1) or bigger and smaller than the max len (-l)\n");
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'c':
 			switch (optarg[FIRST_ELEM]) {
@@ -180,6 +189,10 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 				fprintf(stderr, "Error. Unrecognized character set option.\n");
 				exit(EXIT_FAILURE);
 			}
+			break;
+		case 'f':
+			// _file_flag = true;
+			// get filename
 			break;
 		default:
 			exit(EXIT_FAILURE);
@@ -260,7 +273,7 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
-		printf("Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n", basename(argv[FIRST_ELEM]));
+		printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n", basename(argv[FIRST_ELEM]));
 		exit(EXIT_FAILURE);
 	}
 
@@ -274,12 +287,10 @@ int main(const int argc, char *const argv[]) {
 	mode_t f_mode = 0664;
 	struct termios kb_config;
 
-	compute_flags(&entry_len, choice_set, argc, argv);
+	compute_flags(&entry_len, &min_len, choice_set, argc, argv);
 
 	if (_from_zero)
 		min_len = MIN_ENTRY_LEN;
-	else
-		min_len = entry_len;
 
 	for (int i = min_len; i <= entry_len; i++) {
 		entry_amt = (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) i);
