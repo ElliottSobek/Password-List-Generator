@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <termios.h>
@@ -33,7 +34,7 @@
 #define SECOND 1
 #define PERCENT 1
 #define EXT_LEN 4
-#define ARG_MAX 7
+#define ARG_MAX 11
 #define NUM_LEN 10
 #define NULL_OPT -1
 #define ALPHA_LEN 26
@@ -56,7 +57,6 @@
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
-#define DEFAULT_FILENAME "list.txt"
 
 #define BYTE_S 1L
 #define KBYTE_S 1024L
@@ -67,7 +67,8 @@
 
 unsigned long long _entry_count = 0;
 
-bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
+bool _from_zero = false, _fs_flag = false, _quiet_flag = false, _file_flag = false,
+	_min_flag = false;
 
 void init_kb_intterupt(struct termios kb_config) {
 	kb_config.c_lflag &= ~(ICANON | ECHO);
@@ -106,20 +107,23 @@ void *process_time_stats(void *const restrict total_entries) {
 	return NULL;
 }
 
-void compute_flags(short *const restrict entry_len, char *const restrict choice_set, const unsigned int argc, char *const argv[]) {
+void compute_flags(short *const restrict entry_len, short *const restrict min_len,
+	char *const restrict filename, char *const restrict choice_set,
+	const unsigned int argc, char *const argv[]) {
+
 	int opt = NULL_OPT;
 
-	while ((opt = getopt(argc, argv, "hagql:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "hagql:L:c:f:")) != -1) {
 		switch (opt) {
 		case 'h':
-			printf("The default parameters are length = 8; Character set of Numbers, Upper, & Lower case; File type of .txt\n\n"
-				"Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n\n"
+			printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n\n"
 				"\tOptions:\n\n"
 				"\t-h\tHelp menu\n\n"
-				"\t-a\tCreate passwords starting from length = 0 to specified length\n\n"
+				"\t-a\tCreate passwords starting from length = 0 to specified length; Overrides -L\n\n"
 				"\t-g\tDisplay only the estimated filesize\n\n"
 				"\t-q\tQuiet; Do not output to screen\n\n"
-				"\t-l\tSet password length (DEFAULT: 8)\n\n"
+				"\t-L\tSet minimum password length; Can't be larger than max length\n\n"
+				"\t-l\tSet maximum password length (DEFAULT: 8)\n\n"
 				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
 				"\t\tl LOWER\n"
@@ -130,13 +134,6 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 				"\t\ts ALNUM + SYMBOL\n", basename(argv[FIRST_ELEM]));
 			exit(EXIT_SUCCESS);
 			break;
-		case 'l':
-			*entry_len = atoi(optarg);
-			if (*entry_len < MIN_ENTRY_LEN) {
-				printf("Password length must be one (1) or bigger\n");
-				exit(EXIT_FAILURE);
-			}
-			break;
 		case 'a':
 			_from_zero = true;
 			break;
@@ -145,6 +142,21 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 			break;
 		case 'q':
 			_quiet_flag = true;
+			break;
+		case 'l':
+			*entry_len = atoi(optarg);
+			if (*entry_len < MIN_ENTRY_LEN) {
+				fprintf(stderr, "Password length must be one (1) or bigger\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'L':
+			_min_flag = true;
+			*min_len = atoi(optarg);
+			if (*min_len < MIN_ENTRY_LEN) {
+				fprintf(stderr, "Password length must be one (1) or bigger\n");
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'c':
 			switch (optarg[FIRST_ELEM]) {
@@ -180,6 +192,10 @@ void compute_flags(short *const restrict entry_len, char *const restrict choice_
 				fprintf(stderr, "Error. Unrecognized character set option.\n");
 				exit(EXIT_FAILURE);
 			}
+			break;
+		case 'f':
+			_file_flag = true;
+			strncpy(filename, optarg, PATH_MAX);
 			break;
 		default:
 			exit(EXIT_FAILURE);
@@ -260,26 +276,32 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
-		printf("Usage: %s [-hagq] [-l unsigned int] [-c Char set] <filename>\n", basename(argv[FIRST_ELEM]));
+		printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n",
+			basename(argv[FIRST_ELEM]));
 		exit(EXIT_FAILURE);
 	}
 
-	const char *restrict extension = "", *restrict filename = DEFAULT_FILENAME;
+	const char *restrict extension = "";
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
-			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
+			   fs_buf[FS_OUT_LEN + NT_LEN] = "", filename[PATH_MAX + NT_LEN];
 	short entry_len = DEFAULT_ENTRY_LEN, min_len;
 	unsigned long long total_entries = 0, entry_amt = 0;
 	double fs_size = 0;
 	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
-	mode_t f_mode = 0664;
+	const mode_t f_mode = 0664;
 	struct termios kb_config;
 
-	compute_flags(&entry_len, choice_set, argc, argv);
+	compute_flags(&entry_len, &min_len, filename, choice_set, argc, argv);
 
-	if (_from_zero)
-		min_len = MIN_ENTRY_LEN;
-	else
+	if (min_len > entry_len) {
+		fprintf(stderr, "Minimum length must be larger than maximum length\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (!_min_flag && !_from_zero)
 		min_len = entry_len;
+	else if (_from_zero)
+		min_len = MIN_ENTRY_LEN;
 
 	for (int i = min_len; i <= entry_len; i++) {
 		entry_amt = (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) i);
@@ -302,36 +324,47 @@ int main(const int argc, char *const argv[]) {
 	if (_fs_flag)
 		exit(EXIT_SUCCESS);
 
-	extension = strrchr(argv[argc - NT_LEN], '.'); // Extract process as function?
-	if (extension)
-		if (strncmp(extension, ".txt", EXT_LEN) == 0)
-			filename = argv[argc - NT_LEN];
-
-	const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
-
-	if (fd == -1) {
-		fprintf(stderr, "Error: %s for %s\n", strerror(errno), filename);
-		exit(EXIT_FAILURE);
-	}
+	tcgetattr(STDIN_FILENO, &kb_config);
+	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
 
 	if (!_quiet_flag)
 		pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries);
 
-	tcgetattr(STDIN_FILENO, &kb_config);
-	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
+	if (_file_flag) {
+		extension = strrchr(filename, '.');
+		if (extension) {
+			if (strncmp(extension, ".txt", EXT_LEN) != 0) {
+				fprintf(stderr, "File must be textfile (.txt)\n");
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			fprintf(stderr, "File must have extension\n");
+			exit(EXIT_FAILURE);
+		}
 
-	for (int i = min_len; i <= entry_len; i++)
-		gen_entries(choice_set, i, fd);
+		const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
 
-	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
-	close(fd);
+		if (fd == -1) {
+			fprintf(stderr, "Error: %s for %s\n", strerror(errno), filename);
+			exit(EXIT_FAILURE);
+		}
 
-	if (!_quiet_flag)
+		for (int i = min_len; i <= entry_len; i++)
+			gen_entries(choice_set, i, fd);
+		close(fd);
+	} else
+		for (int i = min_len; i <= entry_len; i++)
+			gen_entries(choice_set, i, STDOUT_FILENO);
+
+	if (!_quiet_flag) {
 		pthread_cancel(update_tid);
 		pthread_join(update_tid, NULL);
+	}
 
 	pthread_cancel(kb_tid);
 	pthread_join(kb_tid, NULL);
+
+	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
 
 	return 0;
 }
