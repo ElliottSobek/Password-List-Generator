@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <termios.h>
@@ -33,7 +34,7 @@
 #define SECOND 1
 #define PERCENT 1
 #define EXT_LEN 4
-#define ARG_MAX 7
+#define ARG_MAX 11
 #define NUM_LEN 10
 #define NULL_OPT -1
 #define ALPHA_LEN 26
@@ -56,7 +57,6 @@
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
-#define DEFAULT_FILENAME "list.txt"
 
 #define BYTE_S 1L
 #define KBYTE_S 1024L
@@ -108,7 +108,8 @@ void *process_time_stats(void *const restrict total_entries) {
 }
 
 void compute_flags(short *const restrict entry_len, short *const restrict min_len,
-	char *const restrict choice_set, const unsigned int argc, char *const argv[]) {
+	char *const restrict filename, char *const restrict choice_set,
+	const unsigned int argc, char *const argv[]) {
 
 	int opt = NULL_OPT;
 
@@ -194,7 +195,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 			break;
 		case 'f':
 			_file_flag = true;
-			// get filename
+			strncpy(filename, optarg, PATH_MAX);
 			break;
 		default:
 			exit(EXIT_FAILURE);
@@ -280,9 +281,9 @@ int main(const int argc, char *const argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	const char *restrict extension = "", *restrict filename = DEFAULT_FILENAME;
+	const char *restrict extension = "";
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
-			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
+			   fs_buf[FS_OUT_LEN + NT_LEN] = "", filename[PATH_MAX + NT_LEN];
 	short entry_len = DEFAULT_ENTRY_LEN, min_len = MIN_ENTRY_LEN;
 	unsigned long long total_entries = 0, entry_amt = 0;
 	double fs_size = 0;
@@ -290,7 +291,7 @@ int main(const int argc, char *const argv[]) {
 	const mode_t f_mode = 0664;
 	struct termios kb_config;
 
-	compute_flags(&entry_len, &min_len, choice_set, argc, argv);
+	compute_flags(&entry_len, &min_len, filename, choice_set, argc, argv);
 
 	if (!_min_flag && !_from_zero)
 		min_len = entry_len;
@@ -318,36 +319,47 @@ int main(const int argc, char *const argv[]) {
 	if (_fs_flag)
 		exit(EXIT_SUCCESS);
 
-	extension = strrchr(argv[argc - NT_LEN], '.'); // Extract process as function?
-	if (extension)
-		if (strncmp(extension, ".txt", EXT_LEN) == 0)
-			filename = argv[argc - NT_LEN];
-
-	const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
-
-	if (fd == -1) {
-		fprintf(stderr, "Error: %s for %s\n", strerror(errno), filename);
-		exit(EXIT_FAILURE);
-	}
+	tcgetattr(STDIN_FILENO, &kb_config);
+	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
 
 	if (!_quiet_flag)
 		pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries);
 
-	tcgetattr(STDIN_FILENO, &kb_config);
-	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
+	if (_file_flag) {
+		extension = strrchr(filename, '.');
+		if (extension) {
+			if (strncmp(extension, ".txt", EXT_LEN) != 0) {
+				fprintf(stderr, "File must be textfile (.txt)\n");
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			fprintf(stderr, "File must have extension\n");
+			exit(EXIT_FAILURE);
+		}
 
-	for (int i = min_len; i <= entry_len; i++)
-		gen_entries(choice_set, i, fd);
+		const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
 
-	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
-	close(fd);
+		if (fd == -1) {
+			fprintf(stderr, "Error: %s for %s\n", strerror(errno), filename);
+			exit(EXIT_FAILURE);
+		}
 
-	if (!_quiet_flag)
+		for (int i = min_len; i <= entry_len; i++)
+			gen_entries(choice_set, i, fd);
+		close(fd);
+	} else
+		for (int i = min_len; i <= entry_len; i++)
+			gen_entries(choice_set, i, STDOUT_FILENO);
+
+	if (!_quiet_flag) {
 		pthread_cancel(update_tid);
 		pthread_join(update_tid, NULL);
+	}
 
 	pthread_cancel(kb_tid);
 	pthread_join(kb_tid, NULL);
+
+	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
 
 	return 0;
 }
