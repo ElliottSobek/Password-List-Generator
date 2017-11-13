@@ -67,7 +67,8 @@
 
 unsigned long long _entry_count = 0;
 
-bool _from_zero = false, _fs_flag = false, _quiet_flag = false;
+bool _from_zero = false, _fs_flag = false, _quiet_flag = false, _file_flag = false,
+	_min_flag = false;
 
 void init_kb_intterupt(struct termios kb_config) {
 	kb_config.c_lflag &= ~(ICANON | ECHO);
@@ -149,6 +150,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 			}
 			break;
 		case 'L':
+			_min_flag = true;
 			*min_len = atoi(optarg);
 			if (*min_len > *entry_len || *min_len < MIN_ENTRY_LEN) {
 				printf("Password length must be one (1) or bigger and smaller than the max len (-l)\n");
@@ -191,7 +193,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 			}
 			break;
 		case 'f':
-			// _file_flag = true;
+			_file_flag = true;
 			// get filename
 			break;
 		default:
@@ -273,23 +275,26 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
-		printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n", basename(argv[FIRST_ELEM]));
+		printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n",
+			basename(argv[FIRST_ELEM]));
 		exit(EXIT_FAILURE);
 	}
 
 	const char *restrict extension = "", *restrict filename = DEFAULT_FILENAME;
 		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
 			   fs_buf[FS_OUT_LEN + NT_LEN] = "";
-	short entry_len = DEFAULT_ENTRY_LEN, min_len;
+	short entry_len = DEFAULT_ENTRY_LEN, min_len = MIN_ENTRY_LEN;
 	unsigned long long total_entries = 0, entry_amt = 0;
 	double fs_size = 0;
 	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
-	mode_t f_mode = 0664;
+	const mode_t f_mode = 0664;
 	struct termios kb_config;
 
 	compute_flags(&entry_len, &min_len, choice_set, argc, argv);
 
-	if (_from_zero)
+	if (!_min_flag && !_from_zero)
+		min_len = entry_len;
+	else if (_from_zero)
 		min_len = MIN_ENTRY_LEN;
 
 	for (int i = min_len; i <= entry_len; i++) {
