@@ -1,5 +1,4 @@
-# Generates all possible character combinations for a given character set and
-# length to a file.
+# Runs rules for given commands.
 # Copyright (C) 2017  Elliott Sobek
 #
 # This program is free software: you can redistribute it and/or modify
