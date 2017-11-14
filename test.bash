@@ -134,8 +134,7 @@ test () {
 	echo "Pass redirection"
 	echo "All tests PASSED"
 
-	make clean
-	rm ./test.exe
+	rm *.o *.txt ./test.exe
 
 	return 0
 }
