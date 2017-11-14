@@ -10,6 +10,4 @@ language: C
 
 compiler: gcc
 
-script:
-  - make all
-  - ./test.bash
+script: ./test.bash
