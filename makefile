@@ -33,4 +33,4 @@ asm-instr:
 	wc -l pwd-list-gen.s
 
 clean:
-	rm *.o
+	rm *.o *.txt ./pwd-list-gen
