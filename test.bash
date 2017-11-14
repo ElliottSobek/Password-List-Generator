@@ -7,6 +7,7 @@ test () {
 		echo "Fail file executable"
 		return 1
 	fi
+	echo "Pass file exe"
 
 	# Test file size calculation
 
@@ -83,43 +84,43 @@ test () {
 	echo "Pass upper"
 
 	# ALPHA
-	./pwd-list-gen -q -l 4 -c p -f t8.txt
+	./pwd-list-gen -q -l 3 -c p -f t8.txt
 
 	byte_size=$(du -b t8.txt | cut -f1)
 	entries=$(wc -l t8.txt | cut --delimiter=" " -f1)
 
-	if [ "$entries" -ne 7311616 -a "$byte_size" -ne 36558080 ]; then
+	if [ "$entries" -ne 140608 -a "$byte_size" -ne 562432 ]; then
 		echo "Fail alpha"
 		return 1
 	fi
 	echo "Pass alpha"
 
 	# ALNUM
-	./pwd-list-gen -q -l 4 -c a -f t9.txt
+	./pwd-list-gen -q -l 3 -c a -f t9.txt
 
 	byte_size=$(du -b t9.txt | cut -f1)
 	entries=$(wc -l t9.txt | cut --delimiter=" " -f1)
 
-	if [ "$entries" -ne 14776336 -a "$byte_size" -ne 73881680 ]; then
+	if [ "$entries" -ne 238328 -a "$byte_size" -ne 953312 ]; then
 		echo "Fail alnum"
 		return 1
 	fi
 	echo "Pass alnum"
 
 	# ALL
-	./pwd-list-gen -q -l 4 -c s -f t10.txt
+	./pwd-list-gen -q -l 3 -c s -f t10.txt
 
 	byte_size=$(du -b t10.txt | cut -f1)
 	entries=$(wc -l t10.txt | cut --delimiter=" " -f1)
 
-	if [ "$entries" -ne 81450625 -a "$byte_size" -ne 407253125 ]; then
+	if [ "$entries" -ne 857375 -a "$byte_size" -ne 3429500 ]; then
 		echo "Fail all choice set"
 		return 1
 	fi
 	echo "Pass all choice set"
 
 	# Redirection
-	./pwd-list-gen -l 4 > t11.txt
+	./pwd-list-gen -q -l 4 > t11.txt
 
 	byte_size=$(du -b t11.txt | cut -f1)
 	entries=$(wc -l t11.txt | cut --delimiter=" " -f1)
