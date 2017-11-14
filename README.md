@@ -1,26 +1,37 @@
 # Password-List-Generator
 
-Generates all possible password permutations to a file.
+Generates all possible password permutations.
 
-Runs on a unix like environment with gcc installed.
+Runs in a unix like environment.
 
 ### Options
 
 * Print help menu (-h)
-* Generate passwords from length 1 to the specified length (-a)
+* Generate passwords from length 1 to the specified length (-a); Overrides -L
 * Calculate only estimated file size (-g)
 * Generate no output to stdout (-q)
-* Choose password length (-l \<unsigned int>) (DEFAULT: 8)
-* Choose character set (-c \<choice>)
+* Choose maximum password length (-l <unsigned int>) (DEFAULT: 8)
+* Choose minimum password length (-L <unsigned int>)
+* Choose character set (-c <choice>)
+* Choose a file to write to (-f <filename>)
 
 * Character set options (DEFAULT: Num):
-    * u (Upper case)
-    * l (Lower case)
-    * p (Alpha)
-    * a (Alnum)
-    * w (Num + Lower)
-    * e (Num + Upper)
-    * s (Num + Upper + Lower + Symbol)
+	* u (Upper case)
+	* l (Lower case)
+	* p (Alpha)
+	* a (Alnum)
+	* w (Num + Lower)
+	* e (Num + Upper)
+	* s (Num + Upper + Lower + Symbol)
+
+## Calculation
+
+The math involved to determine how many total permutations or the total amount
+of bytes used can be described by the following two expressions.
+
+Total Permutations: [img](images/TotalPermutations.png)
+
+Total Bytes: [img](images/TotalBytes.png)
 
 ### Limitations
 
