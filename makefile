@@ -18,13 +18,17 @@ CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g
 
 LDLIBS = -lm -pthread
 
-.PHONY: all asm-instr clean
+.PHONY: all test asm-instr clean
 
 all: pwd-list-gen
 
 pwd-list-gen: pwd-list-gen.o
 	$(CC) $(CFLAGS) $< $(LDLIBS) -o $@
 	chmod 0771 $@
+
+test: pwd-list-gen.o
+	$(CC) -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g $< $(LDLIBS) -o test.exe
+	chmod 0331 test.exe
 
 pwd-list-gen.o: pwd-list-gen.c
 
