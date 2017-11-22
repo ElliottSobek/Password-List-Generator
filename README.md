@@ -15,8 +15,6 @@ Runs in a unix like environment.
 * Choose maximum password length (-l <unsigned int>) (DEFAULT: 8)
 * Choose minimum password length (-L <unsigned int>)
 * Choose character set (-c <choice>)
-* Choose a file to write to (-f <filename>)
-
 * Character set options (DEFAULT: Num):
 	* u (Upper case)
 	* l (Lower case)
@@ -25,6 +23,8 @@ Runs in a unix like environment.
 	* w (Num + Lower)
 	* e (Num + Upper)
 	* s (Num + Upper + Lower + Symbol)
+
+* Choose a file to write to (-f <filename>)
 
 ## Calculation
 
