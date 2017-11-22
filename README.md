@@ -31,9 +31,9 @@ Runs in a unix like environment.
 The math involved to determine how many total permutations or the total amount
 of bytes used can be described by the following two expressions.
 
-Total Permutations: [img](images/TotalPermutations.png)
+Total Permutations: ![alt text](images/TotalPermutations.png "TotalPermutations")
 
-Total Bytes: [img](images/TotalBytes.png)
+Total Bytes: ![alt text](images/TotalBytes.png "TotalBytes")
 
 ### Limitations
 
