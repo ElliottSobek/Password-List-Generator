@@ -10,4 +10,7 @@ language: C
 
 compiler: gcc
 
+branches:
+  only: master
+
 script: ./test.bash
