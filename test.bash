@@ -11,23 +11,62 @@
 
 #!/bin/bash
 
-test () {
+test_file_state () {
 
-	make test
+	# BEGIN TEST FILE STATE
 
-	# Test .exe
 	if [ ! -x ./test.exe ]; then
 		echo "Fail file executable"
 		return 1
 	fi
 	echo "Pass file exe"
 
+	# END TEST FILE STATE
+
+}
+
+test_fs_calculation () {
+
 	# BEGIN TEST FILESIZE AND TOTAL ENTRY SIZE PRINT CALCULATION
 
-	# ./test.exe -g > test.txt
-	# cut -d ":" -f1 test.txt
+	local perm=$(./test.exe -g | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 1)
+	local bytes=$(./test.exe -g | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 2)
+
+	# Nums of length 8 total permutations
+	if [ $perm -ne 100000000 ] ; then
+		echo "Fail permutation calc"
+		return 1
+	fi
+	echo "Pass permutation calc"
+
+	# Nums of length 8 total fs
+	if [ $bytes != "858.3M" ] ; then
+		echo "Fail fs calc"
+		return 1
+	fi
+	echo "Pass fs calc"
+
+	perm=$(./test.exe -ag | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 1)
+	bytes=$(./test.exe -ag | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 2)
+
+	# Nums of all length to 8 total permutations
+	if [ $perm -ne 111111110 ] ; then
+		echo "Fail all permutations calc"
+		return 1
+	fi
+	echo "Pass all permutations calc"
+
+	# Nums of all length to 8 total fs
+	if [ $bytes != "941.9M" ] ; then
+		echo "Fail all fs calc"
+		return 1
+	fi
+	echo "Pass all fs calc"
 
 	# END TEST FILESIZE AND TOTAL ENTRY SIZE PRINT CALCULATION
+}
+
+test_permutation_logic () {
 
 	# BEGIN TEST FILESIZE CALCULATION
 
@@ -152,6 +191,16 @@ test () {
 	echo "Pass redirection"
 
 	# END TEST FILESIZE CALCULATION
+
+}
+
+test () {
+
+	make test
+
+	test_file_state
+	test_fs_calculation
+	test_permutation_logic
 
 	echo "ALL TESTS PASSED"
 
