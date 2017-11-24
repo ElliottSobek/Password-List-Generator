@@ -325,10 +325,16 @@ int main(const int argc, char *const argv[]) {
 		exit(EXIT_SUCCESS);
 
 	tcgetattr(STDIN_FILENO, &kb_config);
-	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
+	if (pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config) != 0) {
+		perror(strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	if (!_quiet_flag)
-		pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries);
+		if (pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries) != 0) {
+			perror(strerror(errno));
+			exit(EXIT_FAILURE);
+		}
 
 	if (_file_flag) {
 		extension = strrchr(filename, '.');
