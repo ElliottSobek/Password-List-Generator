@@ -13,7 +13,7 @@
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g
+CFLAGS = -Wall -Wextra -Wpedantic -std=c99 -O0 -g
 
 LDLIBS = -lm -pthread
 
@@ -30,6 +30,7 @@ test: pwd-list-gen.o
 	chmod 0331 test.exe
 
 pwd-list-gen.o: pwd-list-gen.c
+	$(CC) $(CFLAGS) $< -D_XOPEN_SOURCE=700 -c
 
 asm-instr:
 	$(CC) $(CFLAGS) pwd-list-gen.c $(LDLIBS) -S
