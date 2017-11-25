@@ -120,9 +120,9 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 				"\t-a\tCreate passwords starting from length = 0 to specified length; Overrides -L\n\n"
 				"\t-g\tDisplay only the estimated filesize\n\n"
 				"\t-q\tQuiet; Do not output to screen\n\n"
-				"\t-L <unsigned int>\tSet minimum password length; Can't be larger than max length\n\n"
-				"\t-l <unsigned int>\tSet maximum password length (DEFAULT: 8)\n\n"
-				"\t-c <char>\tChoose character set (DEFAULT: NUM)\n"
+				"\t-L\tSet minimum password length; Can't be larger than max length\n\n"
+				"\t-l\tSet maximum password length (DEFAULT: 8)\n\n"
+				"\t-c\tChoose character set (DEFAULT: NUM)\n"
 				"\t\tu UPPER\n"
 				"\t\tl LOWER\n"
 				"\t\tp ALPHA\n"
@@ -130,7 +130,8 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 				"\t\tw NUM + LOWER\n"
 				"\t\te NUM + UPPER\n"
 				"\t\ts ALNUM + SYMBOL\n\n"
-				"\t-f[filename.txt]\tWrite output to a specifed file (must be txt)\n",
+				"\t-f\tWrite output to a specifed file (must be txt); Optional "
+				"argument, must be called using -f[filename.txt]\n",
 				basename(argv[FIRST_ELEM]));
 			exit(EXIT_SUCCESS);
 			break;
@@ -290,7 +291,7 @@ int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
 		printf("Usage: %s [-hagq] [-L <unsigned int>] [-l <unsigned int>] "
-			"[-c <Char set>] [-f[filename]]\n",
+			"[-c <Char set>] [-f[filename.txt]]\n",
 			basename(argv[FIRST_ELEM]));
 		exit(EXIT_FAILURE);
 	}
