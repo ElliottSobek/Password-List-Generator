@@ -24,7 +24,7 @@ Runs in a unix like environment.
 	* e (Num + Upper)
 	* s (Num + Upper + Lower + Symbol)
 
-* Choose a file to write to (-f <filename>)
+* Choose a file to write to (-f[filename])
 
 ## Calculation
 
