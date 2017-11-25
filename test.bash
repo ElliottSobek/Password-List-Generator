@@ -71,7 +71,7 @@ test_permutation_logic () {
 	# BEGIN TEST FILESIZE CALCULATION
 
 	# Single letter
-	./test.exe -q -l 1 -f t1.txt
+	./test.exe -q -l 1 -ft1.txt
 
 	local byte_size=$(du -b t1.txt | cut -f1)
 	local entries=$(wc -l t1.txt | cut -d " " -f1)
@@ -83,7 +83,7 @@ test_permutation_logic () {
 	echo "Pass single character"
 
 	# Multicharacter
-	./test.exe -q -l 4 -f t2.txt
+	./test.exe -q -l 4 -ft2.txt
 
 	byte_size=$(du -b t2.txt | cut -f1)
 	entries=$(wc -l t2.txt | cut -d " " -f1)
@@ -95,7 +95,7 @@ test_permutation_logic () {
 	echo "Pass multicharacter"
 
 	# All multicharacter
-	./test.exe -aq -l 4 -f t3.txt
+	./test.exe -aq -l 4 -ft3.txt
 
 	byte_size=$(du -b t3.txt | cut -f1)
 	entries=$(wc -l t3.txt | cut -d " " -f1)
@@ -107,7 +107,7 @@ test_permutation_logic () {
 	echo "Pass all multicharacter"
 
 	# Set min (len: 2-4 NUMS)
-	./test.exe -q -L 2 -l 4 -f t4.txt
+	./test.exe -q -L 2 -l 4 -ft4.txt
 
 	byte_size=$(du -b t4.txt | cut -f1)
 	entries=$(wc -l t4.txt | cut -d " " -f1)
@@ -119,7 +119,7 @@ test_permutation_logic () {
 	echo "Pass set min"
 
 	# Lower
-	./test.exe -q -l 4 -c l -f t6.txt
+	./test.exe -q -l 4 -c l -ft6.txt
 
 	byte_size=$(du -b t6.txt | cut -f1)
 	entries=$(wc -l t6.txt | cut -d " " -f1)
@@ -131,7 +131,7 @@ test_permutation_logic () {
 	echo "Pass lower"
 
 	# Upper
-	./test.exe -q -l 4 -c u -f t7.txt
+	./test.exe -q -l 4 -c u -ft7.txt
 
 	byte_size=$(du -b t7.txt | cut -f1)
 	entries=$(wc -l t7.txt | cut -d " " -f1)
@@ -143,7 +143,7 @@ test_permutation_logic () {
 	echo "Pass upper"
 
 	# ALPHA
-	./test.exe -q -l 3 -c p -f t8.txt
+	./test.exe -q -l 3 -c p -ft8.txt
 
 	byte_size=$(du -b t8.txt | cut -f1)
 	entries=$(wc -l t8.txt | cut -d " " -f1)
@@ -155,7 +155,7 @@ test_permutation_logic () {
 	echo "Pass alpha"
 
 	# ALNUM
-	./test.exe -q -l 3 -c a -f t9.txt
+	./test.exe -q -l 3 -c a -ft9.txt
 
 	byte_size=$(du -b t9.txt | cut -f1)
 	entries=$(wc -l t9.txt | cut -d " " -f1)
@@ -167,7 +167,7 @@ test_permutation_logic () {
 	echo "Pass alnum"
 
 	# ALL
-	./test.exe -q -l 3 -c s -f t10.txt
+	./test.exe -q -l 3 -c s -ft10.txt
 
 	byte_size=$(du -b t10.txt | cut -f1)
 	entries=$(wc -l t10.txt | cut -d " " -f1)
