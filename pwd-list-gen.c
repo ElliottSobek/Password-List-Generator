@@ -54,6 +54,7 @@
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
+#define DEFAULT_FILENAME "list.txt"
 
 #define BYTE_S 1L
 #define KBYTE_S 1024L
@@ -110,7 +111,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 
 	int opt;
 
-	while ((opt = getopt(argc, argv, "hagql:L:c:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "hagql:L:c:f::")) != -1) {
 		switch (opt) {
 		case 'h':
 			printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n\n"
@@ -194,7 +195,20 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 			break;
 		case 'f':
 			_file_flag = true;
-			strncpy(filename, optarg, PATH_MAX);
+			if (optarg) {
+				const char *restrict extension = strrchr(filename, '.');
+
+				if (extension) {
+					if (strncmp(extension, ".txt", EXT_LEN) != 0) {
+						fprintf(stderr, "File must be textfile (.txt)\n");
+						exit(EXIT_FAILURE);
+					}
+				} else {
+					fprintf(stderr, "File must have extension\n");
+					exit(EXIT_FAILURE);
+				}
+				strncpy(filename, optarg, PATH_MAX);
+			}
 			break;
 		default:
 			exit(EXIT_FAILURE);
@@ -281,8 +295,7 @@ int main(const int argc, char *const argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	const char *restrict extension;
-		  char fs_buf[FS_OUT_LEN + NT_LEN], filename[PATH_MAX + NT_LEN],
+	char fs_buf[FS_OUT_LEN + NT_LEN], filename[PATH_MAX + NT_LEN] = DEFAULT_FILENAME,
 		  choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
 	short entry_len = DEFAULT_ENTRY_LEN, min_len;
 	unsigned long long entry_amt, total_entries = 0;
@@ -337,17 +350,6 @@ int main(const int argc, char *const argv[]) {
 		}
 
 	if (_file_flag) {
-		extension = strrchr(filename, '.');
-		if (extension) {
-			if (strncmp(extension, ".txt", EXT_LEN) != 0) {
-				fprintf(stderr, "File must be textfile (.txt)\n");
-				exit(EXIT_FAILURE);
-			}
-		} else {
-			fprintf(stderr, "File must have extension\n");
-			exit(EXIT_FAILURE);
-		}
-
 		const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
 
 		if (fd == -1) {
