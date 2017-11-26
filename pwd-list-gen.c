@@ -1,50 +1,47 @@
 /*
 	Generates all possible character combinations for a given character set and
 	length to a file.
-    Copyright (C) 2017  Elliott Sobek
+	Copyright (C) 2017  Elliott Sobek
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    any later version.
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 */
 
 #include <math.h>
-#include <stdio.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <libgen.h>
 #include <limits.h>
-#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <termios.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#define NT_LEN 1
 #define NL_LEN 1
+#define NT_LEN 1
 #define SECOND 1
 #define PERCENT 1
 #define EXT_LEN 4
-#define ARG_MAX 11
 #define NUM_LEN 10
-#define NULL_OPT -1
+#define ARG_MAX 11
 #define ALPHA_LEN 26
-#define NEXT_INDEX 1
 #define FIRST_ELEM 0
+#define NEXT_INDEX 1
 #define PREV_INDEX 1
 #define FS_OUT_LEN 6
 #define SYMBOL_LEN 33
-#define NULL_THREAD -1
-#define NEWLINE_LEN 1
 #define MAX_STR_LEN 98
 #define NULL_STR_LEN -1
 #define MIN_ENTRY_LEN 1
@@ -57,6 +54,7 @@
 #define LOWER "abcdefghijklmnopqrstuvwxyz"
 #define UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define SYMBOL "`~!@#$^&*()-_=+[]{}|;':,./<>? %\\\""
+#define DEFAULT_FILENAME "list.txt"
 
 #define BYTE_S 1L
 #define KBYTE_S 1024L
@@ -91,9 +89,9 @@ void *enable_pause_feature(void *const restrict kb_config) {
 void *process_time_stats(void *const restrict total_entries) {
 	const unsigned long long t_entries = (unsigned long long) total_entries;
 	unsigned long long pentry_count = 0;
-	unsigned long entry_ratio = 0;
-	unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
-	double percent_done = 0;
+	unsigned long entry_ratio;
+	const unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
+	double percent_done;
 
 	while (1) {
 		sleep(30);
@@ -111,9 +109,9 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 	char *const restrict filename, char *const restrict choice_set,
 	const unsigned int argc, char *const argv[]) {
 
-	int opt = NULL_OPT;
+	int opt;
 
-	while ((opt = getopt(argc, argv, "hagql:L:c:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "hagql:L:c:f::")) != -1) {
 		switch (opt) {
 		case 'h':
 			printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n\n"
@@ -131,7 +129,10 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 				"\t\ta ALNUM\n"
 				"\t\tw NUM + LOWER\n"
 				"\t\te NUM + UPPER\n"
-				"\t\ts ALNUM + SYMBOL\n", basename(argv[FIRST_ELEM]));
+				"\t\ts ALNUM + SYMBOL\n\n"
+				"\t-f\tWrite output to a specifed file (must be txt); Optional "
+				"argument, must be called using -f[filename.txt]\n",
+				basename(argv[FIRST_ELEM]));
 			exit(EXIT_SUCCESS);
 			break;
 		case 'a':
@@ -195,7 +196,20 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 			break;
 		case 'f':
 			_file_flag = true;
-			strncpy(filename, optarg, PATH_MAX);
+			if (optarg) {
+				const char *restrict extension = strrchr(filename, '.');
+
+				if (extension) {
+					if (strncmp(extension, ".txt", EXT_LEN) != 0) {
+						fprintf(stderr, "File must be textfile (.txt)\n");
+						exit(EXIT_FAILURE);
+					}
+				} else {
+					fprintf(stderr, "File must have extension\n");
+					exit(EXIT_FAILURE);
+				}
+				strncpy(filename, optarg, PATH_MAX);
+			}
 			break;
 		default:
 			exit(EXIT_FAILURE);
@@ -206,7 +220,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 char *get_estimated_filesize(char *const restrict buffer, const double fs_size) {
 	const char fs_units[DATA_DENOM_LEN] = {'B', 'K', 'M', 'G', 'T', 'P'};
 	const unsigned long long data_denom[DATA_DENOM_LEN] = {BYTE_S, KBYTE_S, MBYTE_S, GBYTE_S, TBYTE_S, PBYTE_S};
-	double reduced_fs = 0;
+	double reduced_fs;
 
 	for (int i = DATA_DENOM_LEN - 1; i > -1; i--) {
 		reduced_fs = fs_size / data_denom[i];
@@ -235,7 +249,7 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 	char entry[entry_len + NT_LEN], end_entry[entry_len + NT_LEN];
 
 	// Clear the arrays
-	for (int i = 0; i < entry_len + NT_LEN; i++) { // Cant unsign i?
+	for (int i = 0; i < entry_len + NT_LEN; i++) { // Cant unsign due to NT_LEN being int
 		entry[i] = '\0';
 		end_entry[i] = '\0';
 	}
@@ -276,18 +290,18 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 int main(const int argc, char *const argv[]) {
 
 	if (argc > ARG_MAX) {
-		printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n",
+		printf("Usage: %s [-hagq] [-L <unsigned int>] [-l <unsigned int>] "
+			"[-c <Char set>] [-f[filename.txt]]\n",
 			basename(argv[FIRST_ELEM]));
 		exit(EXIT_FAILURE);
 	}
 
-	const char *restrict extension = "";
-		  char choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET,
-			   fs_buf[FS_OUT_LEN + NT_LEN] = "", filename[PATH_MAX + NT_LEN];
+	char fs_buf[FS_OUT_LEN + NT_LEN], filename[PATH_MAX + NT_LEN] = DEFAULT_FILENAME,
+		  choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
 	short entry_len = DEFAULT_ENTRY_LEN, min_len;
-	unsigned long long total_entries = 0, entry_amt = 0;
+	unsigned long long entry_amt, total_entries = 0;
 	double fs_size = 0;
-	pthread_t update_tid = NULL_THREAD, kb_tid = NULL_THREAD;
+	pthread_t update_tid, kb_tid;
 	const mode_t f_mode = 0664;
 	struct termios kb_config;
 
@@ -325,23 +339,18 @@ int main(const int argc, char *const argv[]) {
 		exit(EXIT_SUCCESS);
 
 	tcgetattr(STDIN_FILENO, &kb_config);
-	pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config);
+	if (pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config) != 0) {
+		perror(strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	if (!_quiet_flag)
-		pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries);
-
-	if (_file_flag) {
-		extension = strrchr(filename, '.');
-		if (extension) {
-			if (strncmp(extension, ".txt", EXT_LEN) != 0) {
-				fprintf(stderr, "File must be textfile (.txt)\n");
-				exit(EXIT_FAILURE);
-			}
-		} else {
-			fprintf(stderr, "File must have extension\n");
+		if (pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries) != 0) {
+			perror(strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
+	if (_file_flag) {
 		const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
 
 		if (fd == -1) {
