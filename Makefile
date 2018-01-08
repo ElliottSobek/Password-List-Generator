@@ -10,23 +10,24 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-SHELL=/bin/bash
+
+SHELL = /bin/bash
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Wpedantic -std=c99 -O0 -g -D_POSIX_C_SOURCE=200809L
+CFLAGS = -Wall -Wextra -Wpedantic -std=c99 -D_POSIX_C_SOURCE=200809L
 
 LDLIBS = -lm -pthread
 
 .PHONY: all test asm-instr clean
 
 all: pwd-list-gen
-
+# Change to -O3 and remove -g when in production
 pwd-list-gen: pwd-list-gen.o
+	$(CC) $(CFLAGS) -O0 -g $< $(LDLIBS) -o $@
 
 test: pwd-list-gen.o
-	$(CC) -Wall -Wextra -Wpedantic -std=c99 -O0 -g $< $(LDLIBS) -o test.exe
-	chmod 0331 test.exe
+	$(CC) $(CFLAGS) -g $< $(LDLIBS) -o test.exe
 
 pwd-list-gen.o: pwd-list-gen.c
 
