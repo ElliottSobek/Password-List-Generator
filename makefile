@@ -10,6 +10,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
+SHELL=/bin/bash
 
 CC = gcc
 
@@ -34,4 +35,4 @@ asm-instr:
 	wc -l pwd-list-gen.s
 
 clean:
-	rm *.o pwd-list-gen
+	$(RM) *.o pwd-list-gen
