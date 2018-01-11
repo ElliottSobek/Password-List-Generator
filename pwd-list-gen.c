@@ -105,6 +105,28 @@ void *process_time_stats(void *const restrict total_entries) {
 	return NULL;
 }
 
+void print_usage(char *proc_name) {
+	printf("Usage: %s [ options ]\n\n"
+		"\tOptions:\n\n"
+		"\t-h\tHelp menu\n\n"
+		"\t-a\tCreate passwords starting from length = 0 to specified length; Overrides -L\n\n"
+		"\t-g\tDisplay only the estimated filesize\n\n"
+		"\t-q\tQuiet; Do not output to screen\n\n"
+		"\t-L\tSet minimum password length; Can't be larger than max length\n\n"
+		"\t-l\tSet maximum password length (DEFAULT: 8)\n\n"
+		"\t-c\tChoose character set (DEFAULT: NUM)\n"
+		"\t\tu UPPER\n"
+		"\t\tl LOWER\n"
+		"\t\tp ALPHA\n"
+		"\t\ta ALNUM\n"
+		"\t\tw NUM + LOWER\n"
+		"\t\te NUM + UPPER\n"
+		"\t\ts ALNUM + SYMBOL\n\n"
+		"\t-f\tWrite output to a specifed file (must be txt); Optional "
+		"argument, must be called using -f[filename.txt]\n",
+		basename(proc_name));
+}
+
 void compute_flags(short *const restrict entry_len, short *const restrict min_len,
 	char *const restrict filename, char *const restrict choice_set,
 	const unsigned int argc, char *const argv[]) {
@@ -114,25 +136,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 	while ((opt = getopt(argc, argv, "hagql:L:c:f::")) != -1) {
 		switch (opt) {
 		case 'h':
-			printf("Usage: %s [-hagq] [-L unsigned int] [-l unsigned int] [-c Char set] [-f filename]\n\n"
-				"\tOptions:\n\n"
-				"\t-h\tHelp menu\n\n"
-				"\t-a\tCreate passwords starting from length = 0 to specified length; Overrides -L\n\n"
-				"\t-g\tDisplay only the estimated filesize\n\n"
-				"\t-q\tQuiet; Do not output to screen\n\n"
-				"\t-L\tSet minimum password length; Can't be larger than max length\n\n"
-				"\t-l\tSet maximum password length (DEFAULT: 8)\n\n"
-				"\t-c\tChoose character set (DEFAULT: NUM)\n"
-				"\t\tu UPPER\n"
-				"\t\tl LOWER\n"
-				"\t\tp ALPHA\n"
-				"\t\ta ALNUM\n"
-				"\t\tw NUM + LOWER\n"
-				"\t\te NUM + UPPER\n"
-				"\t\ts ALNUM + SYMBOL\n\n"
-				"\t-f\tWrite output to a specifed file (must be txt); Optional "
-				"argument, must be called using -f[filename.txt]\n",
-				basename(argv[FIRST_ELEM]));
+			print_usage(argv[0]);
 			exit(EXIT_SUCCESS);
 			break;
 		case 'a':
