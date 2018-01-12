@@ -10,10 +10,11 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
+SHELL=/bin/bash
 
 CC = gcc
 
-CFLAGS = -Wall -Wextra -Wpedantic -std=c99 -O0 -g
+CFLAGS = -Wall -Wextra -Wpedantic -std=c99 -O0 -g -D_POSIX_C_SOURCE=200809L
 
 LDLIBS = -lm -pthread
 
@@ -22,19 +23,16 @@ LDLIBS = -lm -pthread
 all: pwd-list-gen
 
 pwd-list-gen: pwd-list-gen.o
-	$(CC) $(CFLAGS) $< $(LDLIBS) -o $@
-	chmod 0771 $@
 
 test: pwd-list-gen.o
-	$(CC) -Wall -Wextra -Wpedantic -std=gnu99 -O0 -g $< $(LDLIBS) -o test.exe
+	$(CC) -Wall -Wextra -Wpedantic -std=c99 -O0 -g $< $(LDLIBS) -o test.exe
 	chmod 0331 test.exe
 
 pwd-list-gen.o: pwd-list-gen.c
-	$(CC) $(CFLAGS) $< -D_XOPEN_SOURCE=700 -c
 
 asm-instr:
 	$(CC) $(CFLAGS) pwd-list-gen.c $(LDLIBS) -S
 	wc -l pwd-list-gen.s
 
 clean:
-	rm *.o *.txt ./pwd-list-gen
+	$(RM) *.o pwd-list-gen
