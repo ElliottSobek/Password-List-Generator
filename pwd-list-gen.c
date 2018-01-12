@@ -63,10 +63,10 @@
 #define TBYTE_S ((unsigned long long) (GBYTE_S * KBYTE_S))
 #define PBYTE_S ((unsigned long long) (TBYTE_S * KBYTE_S))
 
-unsigned long long _entry_count = 0;
-
 bool _from_zero = false, _fs_flag = false, _quiet_flag = false, _file_flag = false,
 	_min_flag = false;
+unsigned long long _entry_count = 0;
+pthread_mutex_t global_mutex;
 
 void init_kb_intterupt(struct termios kb_config) {
 	kb_config.c_lflag &= ~(ICANON | ECHO);
@@ -78,19 +78,27 @@ void init_kb_intterupt(struct termios kb_config) {
 
 void *enable_pause_feature(void *const restrict kb_config) {
 	init_kb_intterupt(*((struct termios *) kb_config));
+	bool pause = false;
 
 	while (1) {
-		if (getchar() == KEY_SPACE_CODE)
-			printf("Hit space\n");
+		if (getchar() == KEY_SPACE_CODE) {
+			if (pause) {
+				pause = false;
+				pthread_mutex_unlock(&global_mutex);
+			} else {
+				pause = true;
+				pthread_mutex_lock(&global_mutex);
+			}
+		}
 	}
 	return NULL;
 }
 
 void *process_time_stats(void *const restrict total_entries) {
+	const unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
+	unsigned long entry_ratio;
 	const unsigned long long t_entries = (unsigned long long) total_entries;
 	unsigned long long pentry_count = 0;
-	unsigned long entry_ratio;
-	const unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
 	double percent_done;
 
 	while (1) {
@@ -243,10 +251,9 @@ char get_next_char(const char c, const char *const restrict choice_set) {
 }
 
 void gen_entries(char *restrict choice_set, const unsigned short entry_len, const int fd) {
-	const char *const restrict choices = choice_set; // Why choices to choice_set?
-	const size_t len_n = strnlen(choices, MAX_STR_LEN);
-	const char last_elem = choices[len_n - NT_LEN];
+	const size_t len_n = strnlen(choice_set, MAX_STR_LEN);
 	char entry[entry_len + NT_LEN], end_entry[entry_len + NT_LEN];
+	const char last_elem = choice_set[len_n - NT_LEN];
 
 	// Clear the arrays
 	for (int i = 0; i < entry_len + NT_LEN; i++) { // Cant unsign due to NT_LEN being int
@@ -256,7 +263,7 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 
 	// Init string/entry
 	for (unsigned int i = 0; i < entry_len; i++) {
-		entry[i] = choices[FIRST_ELEM];
+		entry[i] = choice_set[FIRST_ELEM];
 		end_entry[i] = last_elem;
 	}
 
@@ -272,16 +279,16 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 
 				dprintf(fd, "%s\n", entry);
 				_entry_count++;
-				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choices);
+				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choice_set);
 
 				for (unsigned int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
-					entry[j] = choices[FIRST_ELEM];
+					entry[j] = choice_set[FIRST_ELEM];
 			}
 			break;
 		}
 		dprintf(fd, "%s\n", entry);
 		_entry_count++;
-		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choices);
+		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choice_set);
 	}
 	dprintf(fd, "%s\n", entry);
 	_entry_count++;
@@ -298,12 +305,14 @@ int main(const int argc, char *const argv[]) {
 
 	char fs_buf[FS_OUT_LEN + NT_LEN], filename[PATH_MAX + NT_LEN] = DEFAULT_FILENAME,
 		  choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
-	short entry_len = DEFAULT_ENTRY_LEN, min_len;
+	short entry_len = DEFAULT_ENTRY_LEN, min_len = MIN_ENTRY_LEN;
 	unsigned long long entry_amt, total_entries = 0;
 	double fs_size = 0;
-	pthread_t update_tid, kb_tid;
 	const mode_t f_mode = 0664;
+	pthread_t update_tid, kb_tid;
 	struct termios kb_config;
+
+	pthread_mutex_init(&global_mutex, NULL);
 
 	compute_flags(&entry_len, &min_len, filename, choice_set, argc, argv);
 
@@ -364,6 +373,8 @@ int main(const int argc, char *const argv[]) {
 	} else
 		for (int i = min_len; i <= entry_len; i++)
 			gen_entries(choice_set, i, STDOUT_FILENO);
+
+	pthread_mutex_destroy(&global_mutex);
 
 	if (!_quiet_flag) {
 		pthread_cancel(update_tid);
