@@ -20,8 +20,9 @@
 #include <stdio.h>
 #include <libgen.h>
 #include <limits.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -59,14 +60,14 @@
 
 #define BYTE_S 1L
 #define KBYTE_S 1024L
-#define MBYTE_S ((unsigned long long) (KBYTE_S * KBYTE_S))
-#define GBYTE_S ((unsigned long long) (MBYTE_S * KBYTE_S))
-#define TBYTE_S ((unsigned long long) (GBYTE_S * KBYTE_S))
-#define PBYTE_S ((unsigned long long) (TBYTE_S * KBYTE_S))
+#define MBYTE_S ((uint64_t) (KBYTE_S * KBYTE_S))
+#define GBYTE_S ((uint64_t) (MBYTE_S * KBYTE_S))
+#define TBYTE_S ((uint64_t) (GBYTE_S * KBYTE_S))
+#define PBYTE_S ((uint64_t) (TBYTE_S * KBYTE_S))
 
 bool _from_zero = false, _fs_flag = false, _quiet_flag = false, _file_flag = false,
 	_min_flag = false;
-unsigned long long _entry_count = 0;
+uint64_t _entry_count = 0;
 // pthread_mutex_t global_mutex;
 
 void init_kb_intterupt(struct termios kb_config) {
@@ -107,8 +108,8 @@ void *enable_pause_feature(void *const restrict kb_config) {
 void *process_time_stats(void *const restrict total_entries) {
 	const unsigned short denominator = SECOND * 30, hundred_percent = PERCENT * 100;
 	unsigned long entry_ratio;
-	const unsigned long long t_entries = (unsigned long long) total_entries;
-	unsigned long long pentry_count = 0;
+	const uint64_t t_entries = (uint64_t) total_entries;
+	uint64_t pentry_count = 0;
 	double percent_done;
 
 	bool loop = true;
@@ -121,7 +122,7 @@ void *process_time_stats(void *const restrict total_entries) {
 		percent_done = ((double) _entry_count / (double) t_entries) * hundred_percent;
 		entry_ratio = (_entry_count - pentry_count) / denominator;
 
-		printf("%llu of %llu entries generated (%lu entries/s). %.2f%% finished\n",
+		printf("%lu of %lu entries generated (%lu entries/s). %.2f%% finished\n",
 			_entry_count, t_entries, entry_ratio, percent_done);
 		pentry_count = _entry_count;
 		if (false == true) {
@@ -252,7 +253,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 
 char *get_estimated_filesize(char *const restrict buffer, const double fs_size) {
 	const char fs_units[DATA_DENOM_LEN] = {'B', 'K', 'M', 'G', 'T', 'P'};
-	const unsigned long long data_denom[DATA_DENOM_LEN] = {BYTE_S, KBYTE_S, MBYTE_S, GBYTE_S, TBYTE_S, PBYTE_S};
+	const uint64_t data_denom[DATA_DENOM_LEN] = {BYTE_S, KBYTE_S, MBYTE_S, GBYTE_S, TBYTE_S, PBYTE_S};
 	double reduced_fs;
 
 	for (int i = DATA_DENOM_LEN - 1; i > -1; i--) {
@@ -352,7 +353,7 @@ int main(const int argc, char *const argv[]) {
 	char fs_buf[FS_OUT_LEN + NT_LEN], filename[PATH_MAX + NT_LEN] = DEFAULT_FILENAME,
 		  choice_set[NUM_LEN + (ALPHA_LEN << 1) + SYMBOL_LEN + NT_LEN] = DEFAULT_CHOICE_SET;
 	short entry_len = DEFAULT_ENTRY_LEN, min_len = MIN_ENTRY_LEN;
-	unsigned long long entry_amt, total_entries = 0;
+	uint64_t entry_amt, total_entries = 0;
 	double fs_size = 0;
 	const mode_t f_mode = 0664;
 	// pthread_t update_tid, kb_tid;
@@ -373,7 +374,7 @@ int main(const int argc, char *const argv[]) {
 		min_len = MIN_ENTRY_LEN;
 
 	for (int i = min_len; i <= entry_len; i++) {
-		entry_amt = (unsigned long long) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) i);
+		entry_amt = (uint64_t) pow((double) strnlen(choice_set, MAX_STR_LEN), (double) i);
 		total_entries += entry_amt;
 		fs_size += entry_amt * (i + NL_LEN);
 	}
@@ -386,7 +387,7 @@ int main(const int argc, char *const argv[]) {
 			"This program comes with ABSOLUTELY NO WARRANTY.\n"
 			"This is free software, and you are welcome to redistribute it\n"
 			"under certain conditions.\n\n"
-			"Total entries: %llu\n"
+			"Total entries: %lu\n"
 			"The estimated file size will be: %s\n", total_entries,
 			get_estimated_filesize(fs_buf, fs_size));
 
