@@ -11,7 +11,7 @@ Runs in a unix like environment.
 * Print help menu (-h)
 * Generate passwords from length 1 to the specified length (-a); Overrides -L
 * Calculate only estimated file size (-g)
-* Generate no output to stdout (-q)
+* Do not output time statistics (-q)
 * Choose maximum password length (-l <unsigned int>) (DEFAULT: 8)
 * Choose minimum password length (-L <unsigned int>)
 * Choose character set (-c <choice>)
@@ -31,9 +31,16 @@ Runs in a unix like environment.
 The math involved to determine how many total permutations or the total amount
 of bytes used can be described by the following two expressions.
 
-Total Permutations: ![alt text](images/TotalPermutations.png "TotalPermutations")
+Let n be maximum password length.
+Let C be character set.
 
-Total Bytes: ![alt text](images/TotalBytes.png "TotalBytes")
+Total fixed length permutations: ![alt text](images/TotalFixedLengthPermutations.png "Total fixed length permutations")
+
+Total fixed length bytes: ![alt text](images/TotalFixedLengthBytes.png "Total fixed length bytes")
+
+Total multilength permutations: ![alt text](images/TotalMultilengthPermutations.png "Total multilength permutations")
+
+Total multilength bytes: ![alt text](images/TotalMultilengthBytes.png "Total multilength bytes")
 
 ### Limitations
 
