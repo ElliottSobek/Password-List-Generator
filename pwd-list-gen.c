@@ -43,6 +43,7 @@
 #define FS_OUT_LEN 6
 #define SYMBOL_LEN 33
 #define MAX_STR_LEN 98
+#define ENTRY_BUFFER 1024
 #define NULL_STR_LEN -1
 #define MIN_ENTRY_LEN 1
 #define DATA_DENOM_LEN 6
@@ -66,7 +67,7 @@
 bool _from_zero = false, _fs_flag = false, _quiet_flag = false, _file_flag = false,
 	_min_flag = false;
 unsigned long long _entry_count = 0;
-pthread_mutex_t global_mutex;
+// pthread_mutex_t global_mutex;
 
 void init_kb_intterupt(struct termios kb_config) {
 	kb_config.c_lflag &= ~(ICANON | ECHO);
@@ -77,18 +78,27 @@ void init_kb_intterupt(struct termios kb_config) {
 }
 
 void *enable_pause_feature(void *const restrict kb_config) {
-	init_kb_intterupt(*((struct termios *) kb_config));
-	bool pause = false;
+	init_kb_intterupt(*((struct termios*) kb_config));
+	bool pause = false, loop = true;
 
-	while (1) {
+	// pthread_testcancel();
+	// printf("In thread: pause\n");
+
+	while (loop) {
+		// pthread_testcancel();
 		if (getchar() == KEY_SPACE_CODE) {
 			if (pause) {
 				pause = false;
-				pthread_mutex_unlock(&global_mutex);
+				// pthread_mutex_unlock(&global_mutex);
 			} else {
 				pause = true;
-				pthread_mutex_lock(&global_mutex);
+				// pthread_mutex_lock(&global_mutex);
 			}
+		}
+		if (false == true) {
+			pthread_testcancel();
+			printf("In place\n");
+			loop = false;
 		}
 	}
 	return NULL;
@@ -101,7 +111,12 @@ void *process_time_stats(void *const restrict total_entries) {
 	unsigned long long pentry_count = 0;
 	double percent_done;
 
-	while (1) {
+	bool loop = true;
+
+	// pthread_testcancel();
+	printf("In thread: time\n");
+
+	while (loop) {
 		sleep(30);
 		percent_done = ((double) _entry_count / (double) t_entries) * hundred_percent;
 		entry_ratio = (_entry_count - pentry_count) / denominator;
@@ -109,17 +124,23 @@ void *process_time_stats(void *const restrict total_entries) {
 		printf("%llu of %llu entries generated (%lu entries/s). %.2f%% finished\n",
 			_entry_count, t_entries, entry_ratio, percent_done);
 		pentry_count = _entry_count;
+		if (false == true) {
+			pthread_testcancel();
+			loop = false;
+		}
 	}
+	// pthread_testcancel();
 	return NULL;
 }
 
-void print_usage(char *proc_name) {
-	printf("Usage: %s [ options ]\n\n"
+void print_usage(char *const restrict proc_name) {
+	printf("Usage: %s [-hagq] [-L <unsigned int>] [-l <unsigned int>] "
+		"[-c <Char set>] [-f[filename.txt]]\n\n"
 		"\tOptions:\n\n"
 		"\t-h\tHelp menu\n\n"
 		"\t-a\tCreate passwords starting from length = 0 to specified length; Overrides -L\n\n"
 		"\t-g\tDisplay only the estimated filesize\n\n"
-		"\t-q\tQuiet; Do not output to screen\n\n"
+		"\t-q\tQuiet; Do not output time statistics\n\n"
 		"\t-L\tSet minimum password length; Can't be larger than max length\n\n"
 		"\t-l\tSet maximum password length (DEFAULT: 8)\n\n"
 		"\t-c\tChoose character set (DEFAULT: NUM)\n"
@@ -144,7 +165,7 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 	while ((opt = getopt(argc, argv, "hagql:L:c:f::")) != -1) {
 		switch (opt) {
 		case 'h':
-			print_usage(argv[0]);
+			print_usage(argv[FIRST_ELEM]);
 			exit(EXIT_SUCCESS);
 			break;
 		case 'a':
@@ -255,15 +276,24 @@ char get_next_char(const char c, const char *const restrict choice_set) {
 }
 
 void gen_entries(char *restrict choice_set, const unsigned short entry_len, const int fd) {
-	const size_t len_n = strnlen(choice_set, MAX_STR_LEN);
-	char entry[entry_len + NT_LEN], end_entry[entry_len + NT_LEN];
+	const size_t len_n = strnlen(choice_set, MAX_STR_LEN), len_t = entry_len + NL_LEN;
+	char entry[entry_len + NL_LEN + NT_LEN], end_entry[entry_len + NL_LEN + NT_LEN];
 	const char last_elem = choice_set[len_n - NT_LEN];
+	char *buffer = (char*) malloc(((len_t * sizeof(char)) * ENTRY_BUFFER) + (NT_LEN * sizeof(char)));
+
+	if (!buffer) {
+		fprintf(stderr, "%s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	buffer[FIRST_ELEM] = '\0';
 
 	// Clear the arrays
-	for (int i = 0; i < entry_len + NT_LEN; i++) { // Cant unsign due to NT_LEN being int
+	for (int i = 0; i < entry_len + NL_LEN + NT_LEN; i++) { // Cant unsign due to NT_LEN being int
 		entry[i] = '\0';
 		end_entry[i] = '\0';
 	}
+	entry[entry_len] = '\n';
+	end_entry[entry_len] = '\n';
 
 	// Init string/entry
 	for (unsigned int i = 0; i < entry_len; i++) {
@@ -274,15 +304,20 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 	while (strncmp(entry, end_entry, entry_len) != 0) { // While entry not last entry
 
 		// This loop only applies if you have acc -> baa
-		for (int i = entry_len - NT_LEN; i > NULL_STR_LEN; i--) { // Go back down the entry list from the back
+		for (int i = entry_len - PREV_INDEX; i > NULL_STR_LEN; i--) { // Go back down the entry list from the back
 
 			if (entry[i] == last_elem) { // If the current entry index is the last elem
 
 				if (entry[i - PREV_INDEX] == last_elem)
 					continue;
 
-				dprintf(fd, "%s\n", entry);
+				strncat(buffer, entry, len_t);
 				_entry_count++;
+
+				if ((_entry_count % ENTRY_BUFFER) == 0) {
+					dprintf(fd, "%s", buffer);
+					buffer[FIRST_ELEM] = '\0';
+				}
 				entry[i - PREV_INDEX] = get_next_char(entry[i - PREV_INDEX], choice_set);
 
 				for (unsigned int j = i; j < entry_len; j++) // Reset current index and forward ones to base choice
@@ -290,12 +325,19 @@ void gen_entries(char *restrict choice_set, const unsigned short entry_len, cons
 			}
 			break;
 		}
-		dprintf(fd, "%s\n", entry);
+		strncat(buffer, entry, len_t);
 		_entry_count++;
+
+		if ((_entry_count % ENTRY_BUFFER) == 0) {
+			dprintf(fd, "%s", buffer);
+			buffer[FIRST_ELEM] = '\0';
+		}
 		entry[entry_len - PREV_INDEX] = get_next_char(entry[entry_len - PREV_INDEX], choice_set);
 	}
-	dprintf(fd, "%s\n", entry);
+	dprintf(fd, "%s%s", buffer, entry);
 	_entry_count++;
+	free(buffer);
+	buffer = NULL;
 }
 
 int main(const int argc, char *const argv[]) {
@@ -313,10 +355,10 @@ int main(const int argc, char *const argv[]) {
 	unsigned long long entry_amt, total_entries = 0;
 	double fs_size = 0;
 	const mode_t f_mode = 0664;
-	pthread_t update_tid, kb_tid;
-	struct termios kb_config;
+	// pthread_t update_tid, kb_tid;
+	// struct termios kb_config;
 
-	pthread_mutex_init(&global_mutex, NULL);
+	// pthread_mutex_init(&global_mutex, NULL);
 
 	compute_flags(&entry_len, &min_len, filename, choice_set, argc, argv);
 
@@ -351,17 +393,17 @@ int main(const int argc, char *const argv[]) {
 	if (_fs_flag)
 		exit(EXIT_SUCCESS);
 
-	tcgetattr(STDIN_FILENO, &kb_config);
-	if (pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config) != 0) {
-		perror(strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	// tcgetattr(STDIN_FILENO, &kb_config);
+	// if (pthread_create(&kb_tid, NULL, &enable_pause_feature, (void*) &kb_config) != 0) {
+	// 	perror(strerror(errno));
+	// 	exit(EXIT_FAILURE);
+	// }
 
-	if (!_quiet_flag)
-		if (pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries) != 0) {
-			perror(strerror(errno));
-			exit(EXIT_FAILURE);
-		}
+	// if (!_quiet_flag)
+	// 	if (pthread_create(&update_tid, NULL, &process_time_stats, (void *) total_entries) != 0) {
+	// 		perror(strerror(errno));
+	// 		exit(EXIT_FAILURE);
+	// 	}
 
 	if (_file_flag) {
 		const int fd = open(filename, O_CREAT | O_WRONLY, f_mode);
@@ -378,17 +420,23 @@ int main(const int argc, char *const argv[]) {
 		for (int i = min_len; i <= entry_len; i++)
 			gen_entries(choice_set, i, STDOUT_FILENO);
 
-	pthread_mutex_destroy(&global_mutex);
+	// pthread_mutex_destroy(&global_mutex);
 
-	if (!_quiet_flag) {
-		pthread_cancel(update_tid);
-		pthread_join(update_tid, NULL);
-	}
+	// if (!_quiet_flag) {
+	// 	pthread_cancel(update_tid);
+	// 	if (pthread_join(update_tid, NULL) != 0) {
+	// 		perror(strerror(errno));
+	// 		exit(EXIT_FAILURE);
+	// 	}
+	// }
 
-	pthread_cancel(kb_tid);
-	pthread_join(kb_tid, NULL);
+	// pthread_cancel(kb_tid);
+	// if (pthread_join(kb_tid, NULL) != 0){
+	// 	perror(strerror(errno));
+	// 	exit(EXIT_FAILURE);
+	// }
 
-	tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
+	// tcsetattr(STDIN_FILENO, TCSANOW, &kb_config);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
