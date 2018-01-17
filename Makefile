@@ -10,7 +10,8 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-SHELL=/bin/bash
+
+SHELL = /bin/bash
 
 CC = gcc
 
@@ -21,12 +22,11 @@ LDLIBS = -lm -pthread
 .PHONY: all test asm-instr clean
 
 all: pwd-list-gen
-
+# Change to -O3 and remove -g when in production
 pwd-list-gen: pwd-list-gen.o
 
-test: pwd-list-gen.o
-	$(CC) -Wall -Wextra -Wpedantic -std=c99 -O0 -g $< $(LDLIBS) -o test.exe
-	chmod 0331 test.exe
+test: pwd-list-gen.o # In production add -O0 to flag list
+	$(CC) $(CFLAGS) -g $< $(LDLIBS) -o test.exe
 
 pwd-list-gen.o: pwd-list-gen.c
 
