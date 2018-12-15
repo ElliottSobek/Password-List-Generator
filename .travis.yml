@@ -6,11 +6,27 @@ sudo: false
 
 group: stable
 
-language: C
+language: c
 
 compiler: gcc
 
 branches:
   only: master
 
-script: ./test.bash
+addons:
+  sonarcloud:
+    organization: "elliottsobek-github"
+
+before_install:
+  - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+  - unzip build-wrapper-linux-x86.zip
+  - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+
+script:
+  - ./test.bash
+  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make clean all
+  - sonar-scanner
+
+cache:
+  - ccache
+  - $HOME/.sonar/cache

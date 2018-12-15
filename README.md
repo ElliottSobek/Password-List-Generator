@@ -1,3 +1,4 @@
+[![Generic badge](https://img.shields.io/badge/development%20status-in%20development-red.svg "Development Status")](https://shields.io/)
 [![Build Status](https://travis-ci.org/ElliottSobek/Password-List-Generator.svg?branch=master)](https://travis-ci.org/ElliottSobek/Password-List-Generator)
 
 # Password-List-Generator
