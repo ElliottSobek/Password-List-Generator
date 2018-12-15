@@ -19,14 +19,14 @@ addons:
 
 before_install:
   - mkdir -p $TRAVIS_BUILD_DIR/build
-  - sudo apt install unzip
+  - sudo apt install -y unzip
   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
 script:
   - ./test.bash
-  - build-wrapper-linux-x86 --out-dir $TRAVIS_BUILD_DIR/build make clean all
+  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make clean all
   - sonar-scanner
 
 cache:
