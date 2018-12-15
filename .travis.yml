@@ -13,4 +13,12 @@ compiler: gcc
 branches:
   only: master
 
-script: ./test.bash
+addons:
+  sonarcloud:
+    organization: "elliottsobek-github"
+    token:
+      secure: "jMwLDWgGUBnuc4wUfVf8OV3unt0rDskUfkvyMfm9tgi183eqgWt63ifPh+nZP3JH4PCaBX01OMj3IJDwnd0Qh/HKUEQKeDRJ2VF2zpVGxAJ61lg9De2EAuNoofNyTzjS5b/+2IIWAxzomefRjUXDEqBf4Cdo5sw4GxgZM2iy1h4LlkpWlqqfs/lybBhNxI+sPhFTgE7GTIY75hu0lBlpq6pdJR2YwYcffiiU5YQOJbe3WmESMT5r2pxggYF4z5na2TvOcaw9O53W+hu0s0Dne0Pb7OoV929a/gel9MWlzfGO3B9rskh9X7bQ4KJCO35f1PvqF1/5yIQRxO+YLR68HSTeURLL1jgCuRgQ7qsVq4+MaiLpHEQzdEu/sHffbarmyqF5WRbukMHaMWY5nFIh8YgwRwZHFyJCZp4Q0bbZ4tyMFqNoh9u0zC+rCysmHX4hYmMAw0ZMhnobh/GKqRRZvK8j1jGiDNzaxbbIXoX4lbV2Be37nZAcoIcORRYRT80iuNRVjB5XbMJwkxxogX2rAlbMc93t0FcpbVNP6Fd/RrtisMrhb4zBUcnnl+uGW2EPsAxHYhB9KFgCAR3m1IaBO5uXBtoDuJ+X5LlHRdPfYU3BGITBoZN0Qut4gYKbmTPZTEqUy2F9o8388t7Co4LN2E5lsmKSdbs9Z1aliP3wEAk="
+
+script:
+  - ./test.bash
+  - sonar-scanner
