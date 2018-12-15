@@ -19,7 +19,7 @@ addons:
 
 before_install:
   - mkdir -p $TRAVIS_BUILD_DIR/build
-  - sudo apt install -y unzip
+  - sudo apt-get install -y unzip
   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
