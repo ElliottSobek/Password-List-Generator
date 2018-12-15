@@ -35,6 +35,9 @@
 *.i*86
 *.x86_64
 *.hex
+pwd-list-gen-debug
+pwd-list-gen-profile
+pwd-list-gen
 
 # Debug files
 *.dSYM/
