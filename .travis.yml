@@ -36,20 +36,20 @@ before_install:
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
-stage: compile
-script:
-  # - ./configure && make && make test
-  - make
+compile:
+  script:
+    # - ./configure && make && make test
+    - make
 
-stage: test
-script:
-  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
-  - sonar-scanner
-success:
-  script: make clean
+test:
+  script:
+    - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
+    - sonar-scanner
+  success:
+    script: make clean
 
-stage: deploy
-script: echo "DEPLOY"
+deploy:
+  script: echo "DEPLOY"
 
 # script:
 #   - make
