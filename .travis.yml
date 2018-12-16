@@ -25,9 +25,9 @@ addons:
   sonarcloud:
     organization: "elliottsobek-github"
 
-stages:
-  - compile
-  - test
+# stages:
+#   - compile
+#   - test
   # name: deploy
   # if: branch = master
 
@@ -39,17 +39,11 @@ before_install:
 jobs:
   include:
     - stage: compile
-    script:
-      # - ./configure && make && make test
-      - make
-
-    - stage: test
-      script:
-        - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
-        - sonar-scanner
-      success:
-        script: make clean
-
+    script: make
+    - stage: test1
+    script: build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
+    - stage: test2
+    script: sonar-scanner
     # - stage: deploy
     #   script: echo "DEPLOY"
 
