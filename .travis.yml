@@ -36,9 +36,7 @@ script:
 
 success: echo "SUCCESS"
 
-after_success:
-  - make clean
-  - rm -f t*.txt
+after_success: make clean
 
 cache:
   - ccache

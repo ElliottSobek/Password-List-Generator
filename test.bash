@@ -200,6 +200,8 @@ test () {
 	test_fs_calculation
 	test_permutation_logic
 
+	rm -f t*.txt
+
 	echo "ALL TESTS PASSED"
 }
 
