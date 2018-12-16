@@ -25,49 +25,15 @@ addons:
   sonarcloud:
     organization: "elliottsobek-github"
 
-# stages:
-#   - compile
-#   - test
-  # name: deploy
-  # if: branch = master
-
 before_install:
   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
-jobs:
-  include:
-    - stage: compile
-    script: make
-    - stage: test1
-    script: build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
-    - stage: test2
-    script: sonar-scanner
-    # - stage: deploy
-    #   script: echo "DEPLOY"
-
-# script:
-#   - make
-#   - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
-#   - sonar-scanner
-
-# jobs:
-#   include:
-#     - stage "Build"
-#     script:
-#       # - ./configure && make && make test
-#       - make
-
-#     - stage "Test"
-#     script:
-#       - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
-#       - sonar-scanner
-#     success:
-#       script: make clean
-
-#     - stage "Deploy"
-#     script: echo "DEPLOY"
+script:
+  - make
+  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
+  - sonar-scanner
 
 cache:
   - ccache
