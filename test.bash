@@ -196,15 +196,11 @@ test_permutation_logic () {
 
 test () {
 
-	make test
-
 	test_file_state
 	test_fs_calculation
 	test_permutation_logic
 
 	echo "ALL TESTS PASSED"
-
-	rm *.o *.txt ./test.exe
 }
 
 test

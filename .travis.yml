@@ -10,8 +10,14 @@ language: c
 
 compiler: gcc
 
+git:
+  depth: 5
+  quiet: true
+
 branches:
-  only: master
+  only:
+    - master
+    - development
 
 addons:
   sonarcloud:
@@ -23,9 +29,14 @@ before_install:
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
 script:
-  - ./test.bash
+  # - ./configure && make && make test
+  - make && make test
   - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make clean all
   - sonar-scanner
+
+success: echo "SUCCESS"
+
+after_success: make clean
 
 cache:
   - ccache
