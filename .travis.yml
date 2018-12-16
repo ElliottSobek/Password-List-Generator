@@ -42,12 +42,10 @@ jobs:
       - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
       - sonar-scanner
     success:
-      script:
-        - make clean
+      script: make clean
 
     - stage "Deploy"
-    script:
-      - echo "DEPLOY"
+    script: echo "DEPLOY"
 
 cache:
   - ccache
