@@ -13,7 +13,7 @@ compiler:
   - clang
 
 git:
-  depth: 5
+  depth: false
   quiet: true
 
 branches:
@@ -30,22 +30,10 @@ before_install:
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
-jobs:
-  include:
-    - stage "Build"
-    script:
-      # - ./configure && make && make test
-      - make
-
-    - stage "Test"
-    script:
-      - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
-      - sonar-scanner
-    success:
-      script: make clean
-
-    - stage "Deploy"
-    script: echo "DEPLOY"
+script:
+  - make
+  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
+  - sonar-scanner
 
 cache:
   - ccache
