@@ -31,7 +31,7 @@ before_install:
 script:
   # - ./configure && make && make test
   - make
-  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build ../make test
+  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build ../test.bash
   - sonar-scanner
 
 success: echo "SUCCESS"
