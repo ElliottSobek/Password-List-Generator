@@ -11,28 +11,41 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-SHELL = /bin/bash
+SHELL := /bin/bash
 
-CC = gcc
+CC := gcc
 
-CFLAGS = -Wall -Wextra -Wpedantic -std=c99 -O0 -g -D_POSIX_C_SOURCE=200809L
+CFLAGS := -Wall -Wextra -pedantic -std=c99 -D_POSIX_C_SOURCE=200809L
 
-LDLIBS = -lm -pthread
+LDLIBS := -lm -pthread
 
-.PHONY: all test asm-instr clean
+OBJECTS := pwd-list-gen.o
 
-all: pwd-list-gen
-# Change to -O3 and remove -g when in production
-pwd-list-gen: pwd-list-gen.o
+ifeq ($(MAKECMDGOALS),)
+override CFLAGS += -g
+else ifeq ($(MAKECMDGOALS),debug)
+override CFLAGS += -g
+else ifeq ($(MAKECMDGOALS),profile)
+override CFLAGS += -pg
+else
+override CFLAGS += -O3
+endif
 
-test: pwd-list-gen.o # In production add -O0 to flag list
-	$(CC) $(CFLAGS) -g $< $(LDLIBS) -o test.exe
+.PHONY: debug profile production test clean
 
-pwd-list-gen.o: pwd-list-gen.c
+debug: $(OBJECTS)
+	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen-debug
 
-asm-instr:
-	$(CC) $(CFLAGS) pwd-list-gen.c $(LDLIBS) -S
-	wc -l pwd-list-gen.s
+profile: $(OBJECTS)
+	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen-profile
+
+production: $(OBJECTS)
+	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen
+
+test:
+	./test.bash
+
+$(OBJECTS):
 
 clean:
-	$(RM) *.o pwd-list-gen
+	$(RM) *.o pwd-list-gen-debug pwd-list-gen-profile pwd-list-gen
