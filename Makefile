@@ -31,7 +31,7 @@ else
 override CFLAGS += -O3
 endif
 
-.PHONY: debug profile production clean
+.PHONY: debug profile production test clean
 
 debug: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen-debug
@@ -42,8 +42,8 @@ profile: $(OBJECTS)
 production: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen
 
-test: $(OBJECTS)
-	test.bash
+test:
+	./test.bash
 
 $(OBJECTS):
 

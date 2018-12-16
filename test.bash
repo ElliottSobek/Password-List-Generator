@@ -15,7 +15,7 @@ test_file_state () {
 
 	# BEGIN TEST FILE STATE
 
-	if [ ! -x ./test.exe ]; then
+	if [ ! -x ./pwd-list-gen-debug ]; then
 		echo "Fail file executable"
 		exit 1
 	fi
@@ -29,8 +29,8 @@ test_fs_calculation () {
 
 	# BEGIN TEST FILESIZE AND TOTAL ENTRY SIZE PRINT CALCULATION
 
-	local perm=$(./test.exe -g | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 1)
-	local bytes=$(./test.exe -g | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 2)
+	local perm=$(./pwd-list-gen-debug -g | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 1)
+	local bytes=$(./pwd-list-gen-debug -g | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 2)
 
 	# Nums of length 8 total permutations
 	if [ $perm -ne 100000000 ] ; then
@@ -46,8 +46,8 @@ test_fs_calculation () {
 	fi
 	echo "Pass fs calc"
 
-	perm=$(./test.exe -ag | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 1)
-	bytes=$(./test.exe -ag | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 2)
+	perm=$(./pwd-list-gen-debug -ag | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 1)
+	bytes=$(./pwd-list-gen-debug -ag | grep -E "(: )([0-9]+)(\.?)([0-9])([BKMGTP]?)" -o | cut -d " " -f 2 | tr '\n' ' ' | cut -d " " -f 2)
 
 	# Nums of all length to 8 total permutations
 	if [ $perm -ne 111111110 ] ; then
@@ -71,7 +71,7 @@ test_permutation_logic () {
 	# BEGIN TEST FILESIZE CALCULATION
 
 	# Single letter
-	./test.exe -q -l 1 -ft1.txt
+	./pwd-list-gen-debug -q -l 1 -ft1.txt
 
 	local byte_size=$(du -b t1.txt | cut -f1)
 	local entries=$(wc -l t1.txt | cut -d " " -f1)
@@ -83,7 +83,7 @@ test_permutation_logic () {
 	echo "Pass single character"
 
 	# Multicharacter
-	./test.exe -q -l 4 -ft2.txt
+	./pwd-list-gen-debug -q -l 4 -ft2.txt
 
 	byte_size=$(du -b t2.txt | cut -f1)
 	entries=$(wc -l t2.txt | cut -d " " -f1)
@@ -95,7 +95,7 @@ test_permutation_logic () {
 	echo "Pass multicharacter"
 
 	# All multicharacter
-	./test.exe -aq -l 4 -ft3.txt
+	./pwd-list-gen-debug -aq -l 4 -ft3.txt
 
 	byte_size=$(du -b t3.txt | cut -f1)
 	entries=$(wc -l t3.txt | cut -d " " -f1)
@@ -107,7 +107,7 @@ test_permutation_logic () {
 	echo "Pass all multicharacter"
 
 	# Set min (len: 2-4 NUMS)
-	./test.exe -q -L 2 -l 4 -ft4.txt
+	./pwd-list-gen-debug -q -L 2 -l 4 -ft4.txt
 
 	byte_size=$(du -b t4.txt | cut -f1)
 	entries=$(wc -l t4.txt | cut -d " " -f1)
@@ -119,7 +119,7 @@ test_permutation_logic () {
 	echo "Pass set min"
 
 	# Lower
-	./test.exe -q -l 4 -c l -ft6.txt
+	./pwd-list-gen-debug -q -l 4 -c l -ft6.txt
 
 	byte_size=$(du -b t6.txt | cut -f1)
 	entries=$(wc -l t6.txt | cut -d " " -f1)
@@ -131,7 +131,7 @@ test_permutation_logic () {
 	echo "Pass lower"
 
 	# Upper
-	./test.exe -q -l 4 -c u -ft7.txt
+	./pwd-list-gen-debug -q -l 4 -c u -ft7.txt
 
 	byte_size=$(du -b t7.txt | cut -f1)
 	entries=$(wc -l t7.txt | cut -d " " -f1)
@@ -143,7 +143,7 @@ test_permutation_logic () {
 	echo "Pass upper"
 
 	# ALPHA
-	./test.exe -q -l 3 -c p -ft8.txt
+	./pwd-list-gen-debug -q -l 3 -c p -ft8.txt
 
 	byte_size=$(du -b t8.txt | cut -f1)
 	entries=$(wc -l t8.txt | cut -d " " -f1)
@@ -155,7 +155,7 @@ test_permutation_logic () {
 	echo "Pass alpha"
 
 	# ALNUM
-	./test.exe -q -l 3 -c a -ft9.txt
+	./pwd-list-gen-debug -q -l 3 -c a -ft9.txt
 
 	byte_size=$(du -b t9.txt | cut -f1)
 	entries=$(wc -l t9.txt | cut -d " " -f1)
@@ -167,7 +167,7 @@ test_permutation_logic () {
 	echo "Pass alnum"
 
 	# ALL
-	./test.exe -q -l 3 -c s -ft10.txt
+	./pwd-list-gen-debug -q -l 3 -c s -ft10.txt
 
 	byte_size=$(du -b t10.txt | cut -f1)
 	entries=$(wc -l t10.txt | cut -d " " -f1)
@@ -179,7 +179,7 @@ test_permutation_logic () {
 	echo "Pass all choice set"
 
 	# Redirection
-	./test.exe -q -l 4 > t11.txt
+	./pwd-list-gen-debug -q -l 4 > t11.txt
 
 	byte_size=$(du -b t11.txt | cut -f1)
 	entries=$(wc -l t11.txt | cut -d " " -f1)
