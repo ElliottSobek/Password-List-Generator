@@ -13,7 +13,6 @@ compiler:
   - clang
 
 git:
-  depth: 25
   quiet: true
 
 branches:
