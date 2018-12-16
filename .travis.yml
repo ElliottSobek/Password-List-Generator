@@ -8,7 +8,9 @@ group: stable
 
 language: c
 
-compiler: gcc
+compiler:
+  - gcc
+  - clang
 
 git:
   depth: 5
@@ -34,7 +36,8 @@ script:
   - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
   - sonar-scanner
 
-success: echo "SUCCESS"
+success:
+  script: echo "SUCCESS"
 
 after_success: make clean
 
