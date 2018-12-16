@@ -19,7 +19,11 @@ CFLAGS := -Wall -Wextra -pedantic -std=c99 -D_POSIX_C_SOURCE=200809L
 
 LDLIBS := -lm -pthread
 
+SRC := src
+
 OBJECTS := pwd-list-gen.o
+
+VPATH := $(SRC)
 
 ifeq ($(MAKECMDGOALS),)
 override CFLAGS += -g
