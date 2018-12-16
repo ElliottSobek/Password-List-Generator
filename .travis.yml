@@ -26,9 +26,9 @@ addons:
     organization: "elliottsobek-github"
 
 stages:
-  - Build
-  - Test
-  name: Deploy
+  - compile
+  - test
+  name: deploy
   if: branch = master
 
 before_install:
@@ -36,19 +36,19 @@ before_install:
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
-stage: Build
+stage: compile
 script:
   # - ./configure && make && make test
   - make
 
-stage: Test
+stage: test
 script:
   - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
   - sonar-scanner
 success:
   script: make clean
 
-stage: Deploy
+stage: deploy
 script: echo "DEPLOY"
 
 # script:
