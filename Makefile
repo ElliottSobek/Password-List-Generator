@@ -43,7 +43,7 @@ production: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen
 
 test: $(OBJECTS)
-	./test.bash
+	test.bash
 
 $(OBJECTS):
 
