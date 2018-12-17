@@ -41,6 +41,14 @@ script:
 after_script:
   - rm -f build-wrapper-linux-x86.zip
 
+before_deploy:
+  script:
+    - echo "BEFORE DEPLOY"
+
+deploy:
+  script:
+    - echo "DEPLOY"
+
 cache:
   - ccache
   directories:
