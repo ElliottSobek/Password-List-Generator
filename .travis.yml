@@ -38,6 +38,9 @@ script:
   # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
   - sonar-scanner
 
+after_script:
+  - rm -f build-wrapper-linux-x86.zip
+
 before_deploy:
   script:
     - echo "BEFORE DEPLOY"
@@ -45,9 +48,6 @@ before_deploy:
 deploy:
   script:
     - echo "BEFORE DEPLOY"
-
-after_script:
-  - rm -f build-wrapper-linux-x86.zip
 
 cache:
   - ccache
