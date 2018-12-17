@@ -27,6 +27,8 @@ addons:
 
 before_install:
   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+
+install:
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
@@ -36,7 +38,8 @@ script:
   # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
   - sonar-scanner
 
-# success: make clean
+after_script:
+  - rm -f build-wrapper-linux-x86.zip
 
 cache:
   - ccache
