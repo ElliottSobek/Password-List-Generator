@@ -35,9 +35,7 @@ VPATH := $(SRC)
 # override CFLAGS += -O3
 # endif
 
-.PHONY: all debug profile production test clean
-
-all: debug
+.PHONY: debug profile production test clean
 
 debug: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen-debug
