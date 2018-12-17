@@ -19,7 +19,7 @@ git:
 branches:
   only:
     - master
-    - development
+    # - development
 
 addons:
   sonarcloud:
