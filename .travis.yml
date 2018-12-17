@@ -19,7 +19,7 @@ git:
 branches:
   only:
     - master
-    # - development
+    - development
 
 addons:
   sonarcloud:
@@ -37,6 +37,14 @@ script:
   - make test
   # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
   - sonar-scanner
+
+before_deploy:
+  script:
+    - echo "BEFORE DEPLOY"
+
+deploy:
+  script:
+    - echo "BEFORE DEPLOY"
 
 after_script:
   - rm -f build-wrapper-linux-x86.zip
