@@ -19,7 +19,7 @@ git:
 branches:
   only:
     - master
-    - development
+    # - development
 
 addons:
   sonarcloud:
@@ -41,11 +41,11 @@ script:
 after_script:
   - rm -f build-wrapper-linux-x86.zip
 
-before_deploy:
-  - echo "BEFORE DEPLOY"
+# before_deploy:
+#   - echo "BEFORE DEPLOY"
 
-deploy:
-  - echo "DEPLOY"
+# deploy:
+#   - echo "DEPLOY"
 
 cache:
   - ccache
