@@ -38,6 +38,6 @@ script:
 
 # success: make clean
 
-# cache:
-#   - ccache
-#   directories: '$HOME/.sonar/cache'
+cache:
+  - ccache
+  - $HOME/.sonar/cache
