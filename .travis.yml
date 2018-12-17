@@ -41,13 +41,6 @@ script:
 after_script:
   - rm -f build-wrapper-linux-x86.zip
 
-# before_deploy:
-#   - echo "BEFORE DEPLOY"
-
-# deploy:
-#   - echo "DEPLOY"
-
 cache:
   - ccache
-  directories:
-    - $HOME/.sonar/cache
+  - $HOME/.sonar/cache
