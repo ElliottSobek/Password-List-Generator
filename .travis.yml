@@ -33,7 +33,7 @@ before_install:
 script:
   - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make
   - make test
-  - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
+  # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
   - sonar-scanner
 
 # success: make clean
