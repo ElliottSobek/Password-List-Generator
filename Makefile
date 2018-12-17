@@ -37,8 +37,7 @@ VPATH := $(SRC)
 
 .PHONY: all debug profile production test clean
 
-all:
-	debug
+all: debug
 
 debug: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen-debug
