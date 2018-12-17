@@ -15,7 +15,7 @@ SHELL := /bin/bash
 
 CC := gcc
 
-CFLAGS := -Wall -Wextra -pedantic -std=c99 -D_POSIX_C_SOURCE=200809L
+CFLAGS := -Wall -Wextra -pedantic -std=c99 -D_POSIX_C_SOURCE=200809L -g
 
 LDLIBS := -lm -pthread
 
@@ -25,15 +25,15 @@ OBJECTS := pwd-list-gen.o
 
 VPATH := $(SRC)
 
-ifeq ($(MAKECMDGOALS),)
-override CFLAGS += -g
-else ifeq ($(MAKECMDGOALS),debug)
-override CFLAGS += -g
-else ifeq ($(MAKECMDGOALS),profile)
-override CFLAGS += -pg
-else
-override CFLAGS += -O3
-endif
+# ifeq ($(MAKECMDGOALS),)
+# override CFLAGS += -g
+# else ifeq ($(MAKECMDGOALS),debug)
+# override CFLAGS += -g
+# else ifeq ($(MAKECMDGOALS),profile)
+# override CFLAGS += -pg
+# else
+# override CFLAGS += -O3
+# endif
 
 .PHONY: debug profile production test clean
 
