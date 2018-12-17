@@ -10,7 +10,7 @@ language: c
 
 compiler:
   - gcc
-  - clang
+  # - clang
 
 git:
   depth: false
@@ -34,6 +34,6 @@ script:
   - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make clean debug
   - sonar-scanner
 
-cache:
-  - ccache
-  - $HOME/.sonar/cache
+# cache:
+#   - ccache
+#   - $HOME/.sonar/cache
