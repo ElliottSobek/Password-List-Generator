@@ -31,7 +31,8 @@ before_install:
   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
 script:
-  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make debug test
+  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make
+  - make test
   - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
   - sonar-scanner
 
