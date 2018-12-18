@@ -25,9 +25,9 @@ git:
 
 language: c
 
-compiler:
-  - gcc
-  - clang
+compiler: gcc
+  # - gcc
+  # - clang
 
 # branches:
 #   only:
