@@ -23,7 +23,7 @@ language: c
 
 compiler:
   - gcc
-  # - clang
+  - clang
 
 git:
   depth: false
