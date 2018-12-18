@@ -29,21 +29,21 @@ compiler:
   - gcc
   - clang
 
-branches:
-  only:
-    - master
-    - development
+# branches:
+#   only:
+#     - master
+#     - development
 
 addons:
   sonarcloud:
     organization: "elliottsobek-github"
 
 before_install:
-  - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
+  # - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
 
 install:
-  - unzip sonar-scanner-cli-3.2.0.1227-linux.zip
+  # - unzip sonar-scanner-cli-3.2.0.1227-linux.zip
   - unzip build-wrapper-linux-x86.zip
   - export PATH=$PWD/sonar-scanner-cli-3.2.0.1227-linux/bin:$PWD/build-wrapper-linux-x86:$PATH
 
@@ -53,7 +53,8 @@ script:
   - sonar-scanner
 
 after_script:
-  - rm -f build-wrapper-linux-x86.zip sonar-scanner-cli-3.2.0.1227-linux.zip
+  - rm -f build-wrapper-linux-x86.zip
+  # - rm -f build-wrapper-linux-x86.zip sonar-scanner-cli-3.2.0.1227-linux.zip
 
 # before_deploy:
 #   script:
