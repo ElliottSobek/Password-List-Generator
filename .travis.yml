@@ -28,12 +28,6 @@ branches:
     - master
     - development
 
-language: c
-
-compiler:
-  - gcc
-  - clang
-
 cache:
   - ccache
   - $HOME/.sonar/cache
@@ -43,35 +37,26 @@ cache:
 #     organization: "elliottsobek-github"
 
 stages:
-  - Gather Packages
-  - Install
-  - Compile
   - Test
-  - Tear Down
   - Deploy
 
 jobs:
   include:
-    - stage: Gather Packages
-      script:
-        - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
-    - stage: Install
-      script:
+    - stage: Test
+      language: c
+      compiler:
+        - gcc
+        - clang
+      before_install: wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+      install:
         - unzip build-wrapper-linux-x86.zip
         - export PATH=$PWD/build-wrapper-linux-x86:$PATH
-    - stage: Compile
-      addons:
-        sonarcloud:
-          organization: "elliottsobek-github"
       script:
         - build-wrapper-linux-x86-64 --out-dir . make
-    - stage: Test
-      script:
         - make test
         - sonar-scanner
-    - stage: Tear Down
-      script:
-        - rm -f build-wrapper-linux-x86-64
+      after_script:
+        - rm -f build-wrapper-linux-x86.zip
     - stage: Deploy
       script:
         - echo "DEPLOY"
@@ -84,10 +69,10 @@ jobs:
   # - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
 # script:
-#   - build-wrapper-linux-x86-64 --out-dir . make
-#   - make test
-#   # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
-#   - sonar-scanner
+  # - build-wrapper-linux-x86-64 --out-dir . make
+  # - make test
+  # # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
+  # - sonar-scanner
 
 # after_script:
 #   - rm -f build-wrapper-linux-x86.zip
