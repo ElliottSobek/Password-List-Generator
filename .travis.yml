@@ -34,9 +34,9 @@ branches:
     - master
     - development
 
-addons:
-  sonarcloud:
-    organization: "elliottsobek-github"
+# addons:
+#   sonarcloud:
+#     organization: "elliottsobek-github"
 
 before_install:
   - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
@@ -55,13 +55,13 @@ script:
 after_script:
   - rm -f build-wrapper-linux-x86.zip
 
-before_deploy:
-  script:
-    - echo "BEFORE DEPLOY"
+# before_deploy:
+#   script:
+#     - echo "BEFORE DEPLOY"
 
-deploy:
-  script:
-    - echo "BEFORE DEPLOY"
+# deploy:
+#   script:
+#     - echo "BEFORE DEPLOY"
 
 cache:
   - ccache
