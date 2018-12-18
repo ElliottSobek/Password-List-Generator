@@ -52,4 +52,4 @@ test:
 $(OBJECTS):
 
 clean:
-	$(RM) *.o pwd-list-gen-debug pwd-list-gen-profile pwd-list-gen
+	$(RM) $(OBJECTS) pwd-list-gen-debug pwd-list-gen-profile pwd-list-gen

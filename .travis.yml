@@ -34,34 +34,51 @@ branches:
     - master
     - development
 
-addons:
-  sonarcloud:
-    organization: "elliottsobek-github"
+# addons:
+#   sonarcloud:
+#     organization: "elliottsobek-github"
 
-before_install:
-  - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+stages:
+  - One
+  - Two
+  - Three
 
-install:
-  - unzip build-wrapper-linux-x86.zip
-  - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+jobs:
+  include:
+    - stage: One
+      script:
+        - echo "One"
+    - stage: Two
+      script:
+        - echo "Two"
+    - stage: Three
+      script:
+        - echo "Three"
 
-script:
-  - build-wrapper-linux-x86-64 --out-dir . make
-  - make test
-  # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
-  - sonar-scanner
+# before_install:
+#   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
 
-after_script:
-  - rm -f build-wrapper-linux-x86.zip
+# install:
+#   - unzip build-wrapper-linux-x86.zip
+#   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
-before_deploy:
-  script:
-    - echo "BEFORE DEPLOY"
+# script:
+#   - build-wrapper-linux-x86-64 --out-dir . make
+#   - make test
+#   # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
+#   - sonar-scanner
 
-deploy:
-  script:
-    - echo "BEFORE DEPLOY"
+# after_script:
+#   - rm -f build-wrapper-linux-x86.zip
 
-cache:
-  - ccache
-  - $HOME/.sonar/cache
+# before_deploy:
+#   script:
+#     - echo "BEFORE DEPLOY"
+
+# deploy:
+#   script:
+#     - echo "BEFORE DEPLOY"
+
+# cache:
+#   - ccache
+#   - $HOME/.sonar/cache
