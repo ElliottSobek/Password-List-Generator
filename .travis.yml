@@ -23,71 +23,85 @@ git:
   depth: false
   quiet: true
 
+language: c
+
+compiler:
+  - gcc
+  - clang
+
 branches:
   only:
     - master
     - development
 
+addons:
+  sonarcloud:
+    organization: "elliottsobek-github"
+
+before_install:
+  - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+
+install:
+  - unzip build-wrapper-linux-x86.zip
+  - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+
+script:
+  - build-wrapper-linux-x86-64 --out-dir . make
+  - make test
+  # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
+  - sonar-scanner
+
+after_script:
+  - rm -f build-wrapper-linux-x86.zip
+
+before_deploy:
+  script:
+    - echo "BEFORE DEPLOY"
+
+deploy:
+  script:
+    - echo "BEFORE DEPLOY"
+
 cache:
   - ccache
   - $HOME/.sonar/cache
 
-# addons:
-#   sonarcloud:
-#     organization: "elliottsobek-github"
 
-stages:
-  - Test
-  - Deploy
 
-jobs:
-  include:
-    - stage: Test
-      language: c
-      compiler:
-        - gcc
-        - clang
-      addons:
-        sonarcloud:
-          organization: "elliottsobek-github"
-      before_install: wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
-      install:
-        - unzip build-wrapper-linux-x86.zip
-        - export PATH=$PWD/build-wrapper-linux-x86:$PATH
-      script:
-        - build-wrapper-linux-x86-64 --out-dir . make
-        - make test
-        - sonar-scanner
-      after_script:
-        - rm -f build-wrapper-linux-x86.zip
-    - stage: Deploy
-      script:
-        - echo "DEPLOY"
 
-# before_install:
-#   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
 
-# install:
-  # - unzip build-wrapper-linux-x86.zip
-  # - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
-# script:
-  # - build-wrapper-linux-x86-64 --out-dir . make
-  # - make test
-  # # - cat $TRAVIS_BUILD_DIR/build/build-wrapper-dump.json
-  # - sonar-scanner
 
-# after_script:
-#   - rm -f build-wrapper-linux-x86.zip
+# Stage/Jobs Example
 
-# before_deploy:
-#   script:
-#     - echo "BEFORE DEPLOY"
 
-# deploy:
-#   script:
-#     - echo "BEFORE DEPLOY"
+# stages:
+#   - Test
+#   - Deploy
 
-# cache:
-#   - ccache
-#   - $HOME/.sonar/cache
+# jobs:
+#   include:
+#     - stage: Test
+#       cache:
+#         - ccache
+#         - $HOME/.sonar/cache
+#       language: c
+#       compiler:
+#         - gcc
+#         - clang
+#       addons:
+#         sonarcloud:
+#           organization: "elliottsobek-github"
+#       before_install: wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+#       install:
+#         - unzip build-wrapper-linux-x86.zip
+#         - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+#       script:
+#         - build-wrapper-linux-x86-64 --out-dir . make
+#         - make test
+#         - sonar-scanner
+#       after_script:
+#         - rm -f build-wrapper-linux-x86.zip
+#     - stage: Deploy
+#       script:
+#         - echo "DEPLOY"
