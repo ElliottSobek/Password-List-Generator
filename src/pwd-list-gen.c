@@ -168,7 +168,6 @@ void compute_flags(short *const restrict entry_len, short *const restrict min_le
 		case 'h':
 			print_usage(argv[FIRST_ELEM]);
 			exit(EXIT_SUCCESS);
-			break;
 		case 'a':
 			_from_zero = true;
 			break;
