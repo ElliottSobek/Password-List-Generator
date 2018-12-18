@@ -15,15 +15,9 @@ os: linux
 
 dist: trusty
 
-sudo: false
-
 group: stable
 
-language: c
-
-compiler:
-  - gcc
-  - clang
+sudo: false
 
 git:
   depth: false
@@ -33,6 +27,12 @@ branches:
   only:
     - master
     - development
+
+language: c
+
+compiler:
+  - gcc
+  - clang
 
 # addons:
 #   sonarcloud:
