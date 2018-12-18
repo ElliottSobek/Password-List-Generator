@@ -35,7 +35,10 @@ else ifeq ($(MAKECMDGOALS),production)
 override CFLAGS += -O3
 endif
 
-.PHONY: debug profile production test clean
+.PHONY: all debug profile production test clean
+
+all:
+	debug
 
 debug: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen-debug
