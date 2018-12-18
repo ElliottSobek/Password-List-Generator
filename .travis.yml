@@ -1,20 +1,33 @@
+# Travis CI Configuration.
+# Copyright (C) 2018  Elliott Sobek
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
 os: linux
 
 dist: trusty
 
+group: stable
+
 sudo: false
 
-group: stable
+git:
+  depth: false
+  quiet: true
 
 language: c
 
 compiler:
   - gcc
   - clang
-
-git:
-  depth: false
-  quiet: true
 
 branches:
   only:
@@ -26,15 +39,70 @@ addons:
     organization: "elliottsobek-github"
 
 before_install:
+  - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+
+install:
+  - unzip sonar-scanner-cli-3.2.0.1227-linux.zip
   - unzip build-wrapper-linux-x86.zip
-  - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+  - export PATH=$PWD/sonar-scanner-cli-3.2.0.1227-linux/bin:$PWD/build-wrapper-linux-x86:$PATH
 
 script:
-  - make
-  - build-wrapper-linux-x86-64 --out-dir $TRAVIS_BUILD_DIR/build make test
+  - build-wrapper-linux-x86-64 --out-dir bw-output make clean all
+  - make test
   - sonar-scanner
+
+after_script:
+  - rm -f build-wrapper-linux-x86.zip
+
+before_deploy:
+  script:
+    - echo "BEFORE DEPLOY"
+
+deploy:
+  script:
+    - echo "BEFORE DEPLOY"
 
 cache:
   - ccache
   - $HOME/.sonar/cache
+
+
+
+
+
+
+
+# Stage/Jobs Example
+
+
+# stages:
+#   - Test
+#   - Deploy
+
+# jobs:
+#   include:
+#     - stage: Test
+#       cache:
+#         - ccache
+#         - $HOME/.sonar/cache
+#       language: c
+#       compiler:
+#         - gcc
+#         - clang
+#       addons:
+#         sonarcloud:
+#           organization: "elliottsobek-github"
+#       before_install: wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+#       install:
+#         - unzip build-wrapper-linux-x86.zip
+#         - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+#       script:
+#         - build-wrapper-linux-x86-64 --out-dir . make
+#         - make test
+#         - sonar-scanner
+#       after_script:
+#         - rm -f build-wrapper-linux-x86.zip
+#     - stage: Deploy
+#       script:
+#         - echo "DEPLOY"

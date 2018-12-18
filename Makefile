@@ -31,11 +31,13 @@ else ifeq ($(MAKECMDGOALS),debug)
 override CFLAGS += -g
 else ifeq ($(MAKECMDGOALS),profile)
 override CFLAGS += -pg
-else
+else ifeq ($(MAKECMDGOALS),production)
 override CFLAGS += -O3
 endif
 
-.PHONY: debug profile production test clean
+.PHONY: all debug profile production test clean
+
+all: debug
 
 debug: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o pwd-list-gen-debug
@@ -52,4 +54,4 @@ test:
 $(OBJECTS):
 
 clean:
-	$(RM) *.o pwd-list-gen-debug pwd-list-gen-profile pwd-list-gen
+	$(RM) $(OBJECTS) pwd-list-gen-debug pwd-list-gen-profile pwd-list-gen

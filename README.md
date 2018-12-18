@@ -1,5 +1,6 @@
 [![Generic badge](https://img.shields.io/badge/development%20status-in%20development-red.svg "Development Status")](https://shields.io/)
 [![Build Status](https://travis-ci.org/ElliottSobek/Password-List-Generator.svg?branch=master)](https://travis-ci.org/ElliottSobek/Password-List-Generator)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=ElliottSobek_Password-List-Generator&metric=alert_status)](https://sonarcloud.io/dashboard?id=ElliottSobek_Password-List-Generator)
 
 # Password-List-Generator
 
