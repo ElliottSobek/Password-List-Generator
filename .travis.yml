@@ -47,6 +47,9 @@ jobs:
       compiler:
         - gcc
         - clang
+      addons:
+        sonarcloud:
+          organization: "elliottsobek-github"
       before_install: wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
       install:
         - unzip build-wrapper-linux-x86.zip
