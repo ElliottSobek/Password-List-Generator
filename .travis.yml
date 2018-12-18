@@ -34,33 +34,54 @@ compiler:
   - gcc
   - clang
 
+cache:
+  - ccache
+  - $HOME/.sonar/cache
+
 # addons:
 #   sonarcloud:
 #     organization: "elliottsobek-github"
 
 stages:
-  - One
-  - Two
-  - Three
+  - Gather Packages
+  - Install
+  - Compile
+  - Test
+  - Tear Down
+  - Deploy
 
 jobs:
   include:
-    - stage: One
+    - stage: Gather Packages
       script:
-        - echo "One"
-    - stage: Two
+        - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
+    - stage: Install
       script:
-        - echo "Two"
-    - stage: Three
+        - unzip build-wrapper-linux-x86.zip
+        - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+    - stage: Compile
+      addons:
+        sonarcloud:
+          organization: "elliottsobek-github"
       script:
-        - echo "Three"
+        - build-wrapper-linux-x86-64 --out-dir . make
+    - stage: Test
+      script:
+        - make test
+        - sonar-scanner
+    - stage: Tear Down
+      script:
+        - rm -f build-wrapper-linux-x86-64
+    - stage: Deploy
+      script:
+        - echo "DEPLOY"
 
 # before_install:
 #   - wget https://sonarqube.com/static/cpp/build-wrapper-linux-x86.zip
 
 # install:
-#   - unzip build-wrapper-linux-x86.zip
-#   - export PATH=$PWD/build-wrapper-linux-x86:$PATH
+  # - unzip build-wrapper-linux-x86.zip
+  # - export PATH=$PWD/build-wrapper-linux-x86:$PATH
 
 # script:
 #   - build-wrapper-linux-x86-64 --out-dir . make
